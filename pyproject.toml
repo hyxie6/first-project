@@ -1,0 +1,30 @@
+[project]
+name = "test-first-project"
+dynamic = ["version"]
+description = "[Test] First open source project"
+readme = "README.md"
+authors = [
+    { email = "hongyu.xie@horizon.auto" }
+]
+dependencies = []
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://github.com/hyxie6/first-project"
+Issues = "https://github.com/hyxie6/first-project/issues"
+Repository = "https://github.com/hyxie6/first-project"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+backend-path = ["."]
+
+[tool.setuptools]
+package-dir = {"test-first-project" = "test_first_project"}
+packages = ["test-first-project"]
