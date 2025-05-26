@@ -267,6 +267,8 @@ class MyBatchProcessor(SimpleBatchProcessor):
 #   :py:class:`robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig`).
 #
 
+hooks = []
+
 # %%
 # MetricTracker: Track on performance
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -323,6 +325,7 @@ metric_tracker = MyMetricTrackerConfig(
     log_main_process_only=False,
 )
 
+hooks.append(metric_tracker)
 
 # %%
 # StatsMonitor: Logging Training Vitals
@@ -336,6 +339,8 @@ from robo_orchard_lab.pipeline.hooks import StatsMonitorConfig
 
 stats = StatsMonitorConfig(step_log_freq=64)
 
+hooks.append(stats)
+
 # %%
 # SaveCheckpoint: Saving Your Progress
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -348,6 +353,8 @@ stats = StatsMonitorConfig(step_log_freq=64)
 from robo_orchard_lab.pipeline.hooks import SaveCheckpointConfig
 
 save_checkpoint = SaveCheckpointConfig(save_step_freq=1024)
+
+hooks.append(save_checkpoint)
 
 # %%
 # (Advanced) Creating Your First Custom Hook
@@ -463,8 +470,9 @@ class MyHookConfig(PipelineHooksConfig[MyHook]):
     log_epoch_freq: int = 1
 
 
-
 my_hook = MyHookConfig()
+
+hooks.append(my_hook)
 
 
 # %%
@@ -508,7 +516,7 @@ trainer = HookBasedTrainer(
     accelerator=accelerator,
     batch_processor=MyBatchProcessor(need_backward=True),
     max_epoch=cfg.max_epoch,
-    hooks=[metric_tracker, stats, save_checkpoint, my_hook],
+    hooks=hooks,
 )
 
 # %%
