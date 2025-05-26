@@ -1,0 +1,11 @@
+
+Overview
+===========
+
+Architecture
+------------
+
+.. image:: ../_static/architecture.png
+   :alt: System Architecture Diagram
+   :align: center
+   :width: 100%
