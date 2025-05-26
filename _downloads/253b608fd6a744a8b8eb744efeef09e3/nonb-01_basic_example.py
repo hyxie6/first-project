@@ -35,7 +35,7 @@ import torch
 from robo_orchard_lab.utils import log_basic_config
 
 log_basic_config(level=logging.INFO)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 # %%
@@ -349,6 +349,123 @@ from robo_orchard_lab.pipeline.hooks import SaveCheckpointConfig
 
 save_checkpoint = SaveCheckpointConfig(save_step_freq=1024)
 
+# %%
+# (Advanced) Creating Your First Custom Hook
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# In many complex training scenarios, you might need to inject custom logic at various
+# points within the training loop (e.g., at the beginning/end of an epoch, or before/after
+# a training step). The ``robo_orchard_lab`` framework provides a powerful and flexible
+# Hook system based on ``PipelineHooks`` to achieve this without modifying the core
+# training engine.
+#
+# This tutorial will guide you through:
+# 1. Understanding the core components: ``PipelineHooksConfig``, ``PipelineHooks``, ``HookContext``, and ``PipelineHookArgs``.
+# 2. Creating a custom hook class that bundles logging logic for different training stages.
+# 3. Configuring and instantiating your custom hook.
+# 4. (Simulated) Seeing how this hook would interact with a training engine.
+#
+# Let's get started!
+
+# %%
+# Implementing the Custom Hook: ``MyHook``
+# """"""""""""""""""""""""""""""""""""""""""""""""""""
+#
+# Let's define ``MyHook``. It inherits from ``PipelineHooks``.
+# In its ``__init__`` method, it takes its configuration (``MyHookConfig``)
+# and registers its own internal methods as callbacks to different channels
+# using ``self.register_hook()`` and ``HookContext.from_callable()``.
+#
+# ``HookContext.from_callable(before=..., after=...)`` is a convenient way to create
+# a ``HookContext`` object where its ``on_enter`` method will call the ``before``
+# function, and its ``on_exit`` method will call the ``after`` function.
+#
+
+from robo_orchard_lab.pipeline.hooks.mixin import (
+    HookContext,
+    PipelineHookArgs,
+    PipelineHooks,
+    PipelineHooksConfig,
+)
+
+
+class MyHook(PipelineHooks):
+    """A custom hook that logs messages at the beginning and end of loops, epochs, and steps, based on configured frequencies."""
+
+    def __init__(self, cfg: "MyHookConfig"):
+        super().__init__()
+        self.cfg = cfg
+
+        # Register loop-level hooks
+        self.register_hook(
+            channel="on_loop",
+            hook=HookContext.from_callable(before=self._on_loop_begin, after=self._on_loop_end)
+        )
+
+        # Register step-level hooks
+        self.register_hook(
+            channel="on_step",
+            hook=HookContext.from_callable(
+                before=self._on_step_begin, after=self._on_step_end
+            ),
+        )
+
+        # Register epoch-level hooks
+        self.register_hook(
+            channel="on_epoch",
+            hook=HookContext.from_callable(
+                before=self._on_epoch_begin, after=self._on_epoch_end
+            ),
+        )
+
+        logger.info(
+            f"MyHook instance created with step_freq={self.cfg.log_step_freq}, epoch_freq={self.cfg.log_epoch_freq}"
+        )
+
+    def _on_loop_begin(self, args: PipelineHookArgs):
+        logger.info("Begining loop")
+
+    def _on_loop_end(self, args: PipelineHookArgs):
+        logger.info("Ended loop")
+
+    def _on_step_begin(self, args: PipelineHookArgs):
+        # Note: step_id is 0-indexed. Adding 1 for 1-indexed frequency check.
+        if (args.step_id + 1) % self.cfg.log_step_freq == 0:
+            logger.info("Begining {}-th step".format(args.step_id))
+
+    def _on_step_end(self, args: PipelineHookArgs):
+        if (args.step_id + 1) % self.cfg.log_step_freq == 0:
+            logger.info("Ended {}-th step".format(args.step_id))
+
+    def _on_epoch_begin(self, args: PipelineHookArgs):
+        # Note: epoch_id is 0-indexed. Adding 1 for 1-indexed frequency check.
+        if (args.epoch_id + 1) % self.cfg.log_epoch_freq == 0:
+            logger.info("Begining {}-th epoch".format(args.epoch_id))
+
+    def _on_epoch_end(self, args: PipelineHookArgs):
+        if (args.epoch_id + 1) % self.cfg.log_epoch_freq == 0:
+            logger.info("Ended {}-th epoch".format(args.epoch_id))
+
+
+# %%
+# Defining Your Custom Hook Configuration
+# """"""""""""""""""""""""""""""""""""""""""""""""""""
+#
+# Then, we define a Pydantic configuration class for our custom hook.
+# This class will inherit from ``PipelineHooksConfig`` and specify our custom hook
+# class as its ``class_type``. It will also hold any parameters our hook needs,
+# like logging frequencies.
+#
+
+class MyHookConfig(PipelineHooksConfig[MyHook]):
+    class_type: type[MyHook] = MyHook
+    log_step_freq: int = 5
+    log_epoch_freq: int = 1
+
+
+
+my_hook = MyHookConfig()
+
 
 # %%
 # DataLoader, model, optimizer and learning rate scheduler
@@ -391,7 +508,7 @@ trainer = HookBasedTrainer(
     accelerator=accelerator,
     batch_processor=MyBatchProcessor(need_backward=True),
     max_epoch=cfg.max_epoch,
-    hooks=[metric_tracker, stats, save_checkpoint],
+    hooks=[metric_tracker, stats, save_checkpoint, my_hook],
 )
 
 # %%

@@ -417,7 +417,7 @@ to download the full example code.</p>
 <span class="kn">from</span> <span class="nn">robo_orchard_lab.utils</span> <span class="kn">import</span> <span class="n">log_basic_config</span>
 
 <span class="n">log_basic_config</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span></a><span class="p">)</span>
-<span class="n">logger</span> <span class="o">=</span> <a href="https://docs.python.org/3.10/library/logging.html#logging.getLogger" title="logging.getLogger" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-function"><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span></a><span class="p">()</span>
+<a href="https://docs.python.org/3.10/library/logging.html#logging.Logger" title="logging.Logger" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">logger</span></a> <span class="o">=</span> <a href="https://docs.python.org/3.10/library/logging.html#logging.getLogger" title="logging.getLogger" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-function"><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span></a><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -703,6 +703,113 @@ Resuming is handled by Accelerator</p>
 </pre></div>
 </div>
 </section>
+<section id="advanced-creating-your-first-custom-hook">
+<h4>(Advanced) Creating Your First Custom Hook<a class="headerlink" href="#advanced-creating-your-first-custom-hook" title="Link to this heading">¶</a></h4>
+<p>In many complex training scenarios, you might need to inject custom logic at various
+points within the training loop (e.g., at the beginning/end of an epoch, or before/after
+a training step). The <code class="docutils literal notranslate"><span class="pre">robo_orchard_lab</span></code> framework provides a powerful and flexible
+Hook system based on <code class="docutils literal notranslate"><span class="pre">PipelineHooks</span></code> to achieve this without modifying the core
+training engine.</p>
+<p>This tutorial will guide you through:
+1. Understanding the core components: <code class="docutils literal notranslate"><span class="pre">PipelineHooksConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">PipelineHooks</span></code>, <code class="docutils literal notranslate"><span class="pre">HookContext</span></code>, and <code class="docutils literal notranslate"><span class="pre">PipelineHookArgs</span></code>.
+2. Creating a custom hook class that bundles logging logic for different training stages.
+3. Configuring and instantiating your custom hook.
+4. (Simulated) Seeing how this hook would interact with a training engine.</p>
+<p>Let’s get started!</p>
+<section id="implementing-the-custom-hook-myhook">
+<h5>Implementing the Custom Hook: <code class="docutils literal notranslate"><span class="pre">MyHook</span></code><a class="headerlink" href="#implementing-the-custom-hook-myhook" title="Link to this heading">¶</a></h5>
+<p>Let’s define <code class="docutils literal notranslate"><span class="pre">MyHook</span></code>. It inherits from <code class="docutils literal notranslate"><span class="pre">PipelineHooks</span></code>.
+In its <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, it takes its configuration (<code class="docutils literal notranslate"><span class="pre">MyHookConfig</span></code>)
+and registers its own internal methods as callbacks to different channels
+using <code class="docutils literal notranslate"><span class="pre">self.register_hook()</span></code> and <code class="docutils literal notranslate"><span class="pre">HookContext.from_callable()</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">HookContext.from_callable(before=...,</span> <span class="pre">after=...)</span></code> is a convenient way to create
+a <code class="docutils literal notranslate"><span class="pre">HookContext</span></code> object where its <code class="docutils literal notranslate"><span class="pre">on_enter</span></code> method will call the <code class="docutils literal notranslate"><span class="pre">before</span></code>
+function, and its <code class="docutils literal notranslate"><span class="pre">on_exit</span></code> method will call the <code class="docutils literal notranslate"><span class="pre">after</span></code> function.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.hooks.mixin</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">HookContext</span><span class="p">,</span>
+    <span class="n">PipelineHookArgs</span><span class="p">,</span>
+    <span class="n">PipelineHooks</span><span class="p">,</span>
+    <a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">PipelineHooksConfig</span></a><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">MyHook</span><span class="p">(</span><span class="n">PipelineHooks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A custom hook that logs messages at the beginning and end of loops, epochs, and steps, based on configured frequencies.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="s2">&quot;MyHookConfig&quot;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
+
+        <span class="c1"># Register loop-level hooks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span>
+            <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;on_loop&quot;</span><span class="p">,</span>
+            <span class="n">hook</span><span class="o">=</span><span class="n">HookContext</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span><span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_loop_begin</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_loop_end</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Register step-level hooks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span>
+            <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;on_step&quot;</span><span class="p">,</span>
+            <span class="n">hook</span><span class="o">=</span><span class="n">HookContext</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span>
+                <span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_step_begin</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_step_end</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Register epoch-level hooks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span>
+            <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;on_epoch&quot;</span><span class="p">,</span>
+            <span class="n">hook</span><span class="o">=</span><span class="n">HookContext</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span>
+                <span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_epoch_begin</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_epoch_end</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;MyHook instance created with step_freq=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_step_freq</span><span class="si">}</span><span class="s2">, epoch_freq=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_epoch_freq</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_loop_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
+        <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Begining loop&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_loop_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
+        <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Ended loop&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_step_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
+        <span class="c1"># Note: step_id is 0-indexed. Adding 1 for 1-indexed frequency check.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_step_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Begining </span><span class="si">{}</span><span class="s2">-th step&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_on_step_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_step_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Ended </span><span class="si">{}</span><span class="s2">-th step&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_on_epoch_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
+        <span class="c1"># Note: epoch_id is 0-indexed. Adding 1 for 1-indexed frequency check.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_epoch_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Begining </span><span class="si">{}</span><span class="s2">-th epoch&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_on_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_epoch_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Ended </span><span class="si">{}</span><span class="s2">-th epoch&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="defining-your-custom-hook-configuration">
+<h5>Defining Your Custom Hook Configuration<a class="headerlink" href="#defining-your-custom-hook-configuration" title="Link to this heading">¶</a></h5>
+<p>Then, we define a Pydantic configuration class for our custom hook.
+This class will inherit from <code class="docutils literal notranslate"><span class="pre">PipelineHooksConfig</span></code> and specify our custom hook
+class as its <code class="docutils literal notranslate"><span class="pre">class_type</span></code>. It will also hold any parameters our hook needs,
+like logging frequencies.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyHookConfig</span><span class="p">(</span><a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">PipelineHooksConfig</span></a><span class="p">[</span><span class="n">MyHook</span><span class="p">]):</span>
+    <span class="n">class_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">MyHook</span><span class="p">]</span> <span class="o">=</span> <span class="n">MyHook</span>
+    <span class="n">log_step_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">log_epoch_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+
+<span class="n">my_hook</span> <span class="o">=</span> <a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">MyHookConfig</span></a><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 <section id="dataloader-model-optimizer-and-learning-rate-scheduler">
 <h3>DataLoader, model, optimizer and learning rate scheduler<a class="headerlink" href="#dataloader-model-optimizer-and-learning-rate-scheduler" title="Link to this heading">¶</a></h3>
@@ -741,8 +848,11 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
     <span class="n">accelerator</span><span class="o">=</span><span class="n">accelerator</span><span class="p">,</span>
     <span class="n">batch_processor</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/abc.html#abc.ABC" title="abc.ABC" class="sphx-glr-backref-module-abc sphx-glr-backref-type-py-class"><span class="n">MyBatchProcessor</span></a><span class="p">(</span><span class="n">need_backward</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
     <span class="n">max_epoch</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cfg</span><span class="o">.</span><span class="n">max_epoch</span></a><span class="p">,</span>
-    <span class="n">hooks</span><span class="o">=</span><span class="p">[</span><span class="n">metric_tracker</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">save_checkpoint</span><span class="p">],</span>
+    <span class="n">hooks</span><span class="o">=</span><span class="p">[</span><span class="n">metric_tracker</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">save_checkpoint</span><span class="p">,</span> <span class="n">my_hook</span><span class="p">],</span>
 <span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Rank[0/1] 05/26/2025 18:34:44 INFO __main__:421 MyHook instance created with step_freq=5, epoch_freq=1
 </pre></div>
 </div>
 <p>Show hooks</p>
@@ -756,12 +866,16 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
       hooks=[
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method MyMetricTracker(id=139624588063648)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/metric.py:181&gt;,
+          before=&lt;FunctionInfo bound method MyMetricTracker(id=140139236508768)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/metric.py:181&gt;,
           after=None)&gt;,
         1: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method StatsMonitor(id=139624588063456)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:234&gt;,
-          after=None)&gt;
+          before=&lt;FunctionInfo bound method StatsMonitor(id=140139236352032)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:234&gt;,
+          after=None)&gt;,
+        2: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
+          name=None,
+          before=&lt;FunctionInfo bound method MyHook(id=140139236343920)._on_loop_begin from nonb-01_basic_example.py:425&gt;,
+          after=&lt;FunctionInfo bound method MyHook(id=140139236343920)._on_loop_end from nonb-01_basic_example.py:428&gt;)&gt;
       ])&gt;,
     on_epoch: &lt;robo_orchard_core.utils.hook.HookContextChannel(
       name=on_epoch,
@@ -769,15 +883,19 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method MyMetricTracker(id=139624588063648)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:233&gt;)&gt;,
+          after=&lt;FunctionInfo bound method MyMetricTracker(id=140139236508768)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:233&gt;)&gt;,
         1: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method StatsMonitor(id=139624588063456)._on_epoch_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:316&gt;,
-          after=&lt;FunctionInfo bound method StatsMonitor(id=139624588063456)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:321&gt;)&gt;,
+          before=&lt;FunctionInfo bound method StatsMonitor(id=140139236352032)._on_epoch_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:316&gt;,
+          after=&lt;FunctionInfo bound method StatsMonitor(id=140139236352032)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:321&gt;)&gt;,
         2: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method SaveCheckpoint(id=139624036753584)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:116&gt;)&gt;
+          after=&lt;FunctionInfo bound method SaveCheckpoint(id=140139236350304)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:116&gt;)&gt;,
+        3: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
+          name=None,
+          before=&lt;FunctionInfo bound method MyHook(id=140139236343920)._on_epoch_begin from nonb-01_basic_example.py:440&gt;,
+          after=&lt;FunctionInfo bound method MyHook(id=140139236343920)._on_epoch_end from nonb-01_basic_example.py:445&gt;)&gt;
       ])&gt;,
     on_step: &lt;robo_orchard_core.utils.hook.HookContextChannel(
       name=on_step,
@@ -785,19 +903,23 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method OptimizerHook(id=139624084493680)._optimizer_step from ../../robo_orchard_lab/pipeline/hooks/optimizer.py:45&gt;)&gt;,
+          after=&lt;FunctionInfo bound method OptimizerHook(id=140139372386512)._optimizer_step from ../../robo_orchard_lab/pipeline/hooks/optimizer.py:45&gt;)&gt;,
         1: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method MyMetricTracker(id=139624588063648)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:205&gt;)&gt;,
+          after=&lt;FunctionInfo bound method MyMetricTracker(id=140139236508768)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:205&gt;)&gt;,
         2: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method StatsMonitor(id=139624588063456)._on_step_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:245&gt;,
-          after=&lt;FunctionInfo bound method StatsMonitor(id=139624588063456)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:249&gt;)&gt;,
+          before=&lt;FunctionInfo bound method StatsMonitor(id=140139236352032)._on_step_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:245&gt;,
+          after=&lt;FunctionInfo bound method StatsMonitor(id=140139236352032)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:249&gt;)&gt;,
         3: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method SaveCheckpoint(id=139624036753584)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:88&gt;)&gt;
+          after=&lt;FunctionInfo bound method SaveCheckpoint(id=140139236350304)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:88&gt;)&gt;,
+        4: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
+          name=None,
+          before=&lt;FunctionInfo bound method MyHook(id=140139236343920)._on_step_begin from nonb-01_basic_example.py:431&gt;,
+          after=&lt;FunctionInfo bound method MyHook(id=140139236343920)._on_step_end from nonb-01_basic_example.py:436&gt;)&gt;
       ])&gt;,
     on_batch: &lt;robo_orchard_core.utils.hook.HookContextChannel(
       name=on_batch,
@@ -805,7 +927,7 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method MyMetricTracker(id=139624588063648)._on_batch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:194&gt;)&gt;
+          after=&lt;FunctionInfo bound method MyMetricTracker(id=140139236508768)._on_batch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:194&gt;)&gt;
       ])&gt;,
   })&gt;
 </pre></div>
@@ -814,65 +936,87 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">trainer</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Rank[0/1] 05/26/2025 16:59:54 INFO robo_orchard_lab.pipeline.hook_based_trainer:323
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Rank[0/1] 05/26/2025 18:34:45 INFO robo_orchard_lab.pipeline.hook_based_trainer:323
 ==================================================BEGIN TRAINING==================================================
-Rank[0/1] 05/26/2025 16:59:54 INFO robo_orchard_lab.pipeline.hook_based_trainer:327 Start training loop from epoch 0 and step 0
-Rank[0/1] 05/26/2025 17:00:00 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[0]: top1_acc[tensor(0.0010, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0049, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/26/2025 17:00:00 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[0] completed. Training Speed: 175.36 samples/sec across all devices. Epoch Time: 5.84 sec.   Average Epoch Time: 5.84 sec.   Average Step Time: 0.73 sec.    Estimated Remaining Time: 0:00:23.      Learning Rate: 1.00000e-01.
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_0
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_0/model.safetensors
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_0/model_1.safetensors
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_0/optimizer.bin
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_0/scheduler.bin
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_0/sampler.bin
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_0/random_states_0.pkl
-Rank[0/1] 05/26/2025 17:00:00 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_0/custom_checkpoint_0.pkl
-Rank[0/1] 05/26/2025 17:00:00 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 0 to workspace/checkpoints/checkpoint_0
-Rank[0/1] 05/26/2025 17:00:05 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[1]: top1_acc[tensor(0.0010, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0059, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/26/2025 17:00:05 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[1] completed. Training Speed: 196.39 samples/sec across all devices. Epoch Time: 5.21 sec.   Average Epoch Time: 5.21 sec.   Average Step Time: 0.65 sec.    Estimated Remaining Time: 0:00:17.      Learning Rate: 1.00000e-01.
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_1
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_1/model.safetensors
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_1/model_1.safetensors
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_1/optimizer.bin
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_1/scheduler.bin
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_1/sampler.bin
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_1/random_states_0.pkl
-Rank[0/1] 05/26/2025 17:00:05 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_1/custom_checkpoint_0.pkl
-Rank[0/1] 05/26/2025 17:00:05 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 1 to workspace/checkpoints/checkpoint_1
-Rank[0/1] 05/26/2025 17:00:10 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[2]: top1_acc[tensor(0., device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0049, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/26/2025 17:00:10 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[2] completed. Training Speed: 200.69 samples/sec across all devices. Epoch Time: 5.10 sec.   Average Epoch Time: 5.10 sec.   Average Step Time: 0.64 sec.    Estimated Remaining Time: 0:00:11.      Learning Rate: 1.00000e-01.
-Rank[0/1] 05/26/2025 17:00:10 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_2
-Rank[0/1] 05/26/2025 17:00:11 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_2/model.safetensors
-Rank[0/1] 05/26/2025 17:00:11 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_2/model_1.safetensors
-Rank[0/1] 05/26/2025 17:00:11 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_2/optimizer.bin
-Rank[0/1] 05/26/2025 17:00:11 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_2/scheduler.bin
-Rank[0/1] 05/26/2025 17:00:11 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_2/sampler.bin
-Rank[0/1] 05/26/2025 17:00:11 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_2/random_states_0.pkl
-Rank[0/1] 05/26/2025 17:00:11 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_2/custom_checkpoint_0.pkl
-Rank[0/1] 05/26/2025 17:00:11 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 2 to workspace/checkpoints/checkpoint_2
-Rank[0/1] 05/26/2025 17:00:16 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[3]: top1_acc[tensor(0.0010, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0068, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/26/2025 17:00:16 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[3] completed. Training Speed: 193.93 samples/sec across all devices. Epoch Time: 5.28 sec.   Average Epoch Time: 5.28 sec.   Average Step Time: 0.66 sec.    Estimated Remaining Time: 0:00:05.      Learning Rate: 1.00000e-02.
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_3
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_3/model.safetensors
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_3/model_1.safetensors
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_3/optimizer.bin
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_3/scheduler.bin
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_3/sampler.bin
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_3/random_states_0.pkl
-Rank[0/1] 05/26/2025 17:00:16 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_3/custom_checkpoint_0.pkl
-Rank[0/1] 05/26/2025 17:00:16 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 3 to workspace/checkpoints/checkpoint_3
-Rank[0/1] 05/26/2025 17:00:22 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[4]: top1_acc[tensor(0.0039, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0107, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/26/2025 17:00:22 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[4] completed. Training Speed: 183.89 samples/sec across all devices. Epoch Time: 5.57 sec.   Average Epoch Time: 5.57 sec.   Average Step Time: 0.70 sec.    Estimated Remaining Time: 0:00:00.      Learning Rate: 1.00000e-02.
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_4
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_4/model.safetensors
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_4/model_1.safetensors
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_4/optimizer.bin
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_4/scheduler.bin
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_4/sampler.bin
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_4/random_states_0.pkl
-Rank[0/1] 05/26/2025 17:00:22 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_4/custom_checkpoint_0.pkl
-Rank[0/1] 05/26/2025 17:00:22 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 4 to workspace/checkpoints/checkpoint_4
-Rank[0/1] 05/26/2025 17:00:22 INFO robo_orchard_lab.pipeline.hook_based_trainer:396
+Rank[0/1] 05/26/2025 18:34:45 INFO robo_orchard_lab.pipeline.hook_based_trainer:327 Start training loop from epoch 0 and step 0
+Rank[0/1] 05/26/2025 18:34:45 INFO __main__:426 Begining loop
+Rank[0/1] 05/26/2025 18:34:45 INFO __main__:443 Begining 0-th epoch
+Rank[0/1] 05/26/2025 18:34:49 INFO __main__:434 Begining 4-th step
+Rank[0/1] 05/26/2025 18:34:49 INFO __main__:438 Ended 4-th step
+Rank[0/1] 05/26/2025 18:34:51 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[0]: top1_acc[tensor(0.0010, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0049, device=&#39;cuda:0&#39;)]
+Rank[0/1] 05/26/2025 18:34:51 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[0] completed. Training Speed: 168.56 samples/sec across all devices. Epoch Time: 6.08 sec.   Average Epoch Time: 6.08 sec.   Average Step Time: 0.76 sec.    Estimated Remaining Time: 0:00:24.      Learning Rate: 1.00000e-01.
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_0
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_0/model.safetensors
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_0/model_1.safetensors
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_0/optimizer.bin
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_0/scheduler.bin
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_0/sampler.bin
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_0/random_states_0.pkl
+Rank[0/1] 05/26/2025 18:34:51 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_0/custom_checkpoint_0.pkl
+Rank[0/1] 05/26/2025 18:34:51 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 0 to workspace/checkpoints/checkpoint_0
+Rank[0/1] 05/26/2025 18:34:51 INFO __main__:447 Ended 0-th epoch
+Rank[0/1] 05/26/2025 18:34:51 INFO __main__:443 Begining 1-th epoch
+Rank[0/1] 05/26/2025 18:34:55 INFO __main__:434 Begining 4-th step
+Rank[0/1] 05/26/2025 18:34:55 INFO __main__:438 Ended 4-th step
+Rank[0/1] 05/26/2025 18:34:57 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[1]: top1_acc[tensor(0.0029, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0068, device=&#39;cuda:0&#39;)]
+Rank[0/1] 05/26/2025 18:34:57 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[1] completed. Training Speed: 188.41 samples/sec across all devices. Epoch Time: 5.44 sec.   Average Epoch Time: 5.44 sec.   Average Step Time: 0.68 sec.    Estimated Remaining Time: 0:00:17.      Learning Rate: 1.00000e-01.
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_1
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_1/model.safetensors
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_1/model_1.safetensors
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_1/optimizer.bin
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_1/scheduler.bin
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_1/sampler.bin
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_1/random_states_0.pkl
+Rank[0/1] 05/26/2025 18:34:57 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_1/custom_checkpoint_0.pkl
+Rank[0/1] 05/26/2025 18:34:57 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 1 to workspace/checkpoints/checkpoint_1
+Rank[0/1] 05/26/2025 18:34:57 INFO __main__:447 Ended 1-th epoch
+Rank[0/1] 05/26/2025 18:34:57 INFO __main__:443 Begining 2-th epoch
+Rank[0/1] 05/26/2025 18:35:01 INFO __main__:434 Begining 4-th step
+Rank[0/1] 05/26/2025 18:35:01 INFO __main__:438 Ended 4-th step
+Rank[0/1] 05/26/2025 18:35:02 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[2]: top1_acc[tensor(0.0029, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0127, device=&#39;cuda:0&#39;)]
+Rank[0/1] 05/26/2025 18:35:02 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[2] completed. Training Speed: 185.46 samples/sec across all devices. Epoch Time: 5.52 sec.   Average Epoch Time: 5.52 sec.   Average Step Time: 0.69 sec.    Estimated Remaining Time: 0:00:11.      Learning Rate: 1.00000e-01.
+Rank[0/1] 05/26/2025 18:35:02 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_2
+Rank[0/1] 05/26/2025 18:35:03 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_2/model.safetensors
+Rank[0/1] 05/26/2025 18:35:03 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_2/model_1.safetensors
+Rank[0/1] 05/26/2025 18:35:03 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_2/optimizer.bin
+Rank[0/1] 05/26/2025 18:35:03 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_2/scheduler.bin
+Rank[0/1] 05/26/2025 18:35:03 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_2/sampler.bin
+Rank[0/1] 05/26/2025 18:35:03 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_2/random_states_0.pkl
+Rank[0/1] 05/26/2025 18:35:03 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_2/custom_checkpoint_0.pkl
+Rank[0/1] 05/26/2025 18:35:03 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 2 to workspace/checkpoints/checkpoint_2
+Rank[0/1] 05/26/2025 18:35:03 INFO __main__:447 Ended 2-th epoch
+Rank[0/1] 05/26/2025 18:35:03 INFO __main__:443 Begining 3-th epoch
+Rank[0/1] 05/26/2025 18:35:06 INFO __main__:434 Begining 4-th step
+Rank[0/1] 05/26/2025 18:35:06 INFO __main__:438 Ended 4-th step
+Rank[0/1] 05/26/2025 18:35:08 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[3]: top1_acc[tensor(0.0039, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0166, device=&#39;cuda:0&#39;)]
+Rank[0/1] 05/26/2025 18:35:08 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[3] completed. Training Speed: 196.32 samples/sec across all devices. Epoch Time: 5.22 sec.   Average Epoch Time: 5.22 sec.   Average Step Time: 0.65 sec.    Estimated Remaining Time: 0:00:05.      Learning Rate: 1.00000e-02.
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_3
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_3/model.safetensors
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_3/model_1.safetensors
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_3/optimizer.bin
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_3/scheduler.bin
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_3/sampler.bin
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_3/random_states_0.pkl
+Rank[0/1] 05/26/2025 18:35:08 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_3/custom_checkpoint_0.pkl
+Rank[0/1] 05/26/2025 18:35:08 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 3 to workspace/checkpoints/checkpoint_3
+Rank[0/1] 05/26/2025 18:35:08 INFO __main__:447 Ended 3-th epoch
+Rank[0/1] 05/26/2025 18:35:08 INFO __main__:443 Begining 4-th epoch
+Rank[0/1] 05/26/2025 18:35:12 INFO __main__:434 Begining 4-th step
+Rank[0/1] 05/26/2025 18:35:12 INFO __main__:438 Ended 4-th step
+Rank[0/1] 05/26/2025 18:35:13 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[4]: top1_acc[tensor(0.0039, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0146, device=&#39;cuda:0&#39;)]
+Rank[0/1] 05/26/2025 18:35:13 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[4] completed. Training Speed: 204.97 samples/sec across all devices. Epoch Time: 5.00 sec.   Average Epoch Time: 5.00 sec.   Average Step Time: 0.62 sec.    Estimated Remaining Time: 0:00:00.      Learning Rate: 1.00000e-02.
+Rank[0/1] 05/26/2025 18:35:13 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_4
+Rank[0/1] 05/26/2025 18:35:14 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_4/model.safetensors
+Rank[0/1] 05/26/2025 18:35:14 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_4/model_1.safetensors
+Rank[0/1] 05/26/2025 18:35:14 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_4/optimizer.bin
+Rank[0/1] 05/26/2025 18:35:14 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_4/scheduler.bin
+Rank[0/1] 05/26/2025 18:35:14 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_4/sampler.bin
+Rank[0/1] 05/26/2025 18:35:14 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_4/random_states_0.pkl
+Rank[0/1] 05/26/2025 18:35:14 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_4/custom_checkpoint_0.pkl
+Rank[0/1] 05/26/2025 18:35:14 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 4 to workspace/checkpoints/checkpoint_4
+Rank[0/1] 05/26/2025 18:35:14 INFO __main__:447 Ended 4-th epoch
+Rank[0/1] 05/26/2025 18:35:14 INFO __main__:429 Ended loop
+Rank[0/1] 05/26/2025 18:35:14 INFO robo_orchard_lab.pipeline.hook_based_trainer:396
 ==================================================FINISH TRAINING==================================================
 </pre></div>
 </div>
@@ -923,7 +1067,7 @@ Rank[0/1] 05/26/2025 17:00:22 INFO robo_orchard_lab.pipeline.hook_based_trainer:
 6 directories, 30 files
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 29.441 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 30.050 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-build-trainer-tutorial-nonb-01-basic-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/4280948d0913a2e42933717b500f6b46/nonb-01_basic_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">nonb-01_basic_example.ipynb</span></code></a></p>
@@ -1011,6 +1155,11 @@ Rank[0/1] 05/26/2025 17:00:22 INFO robo_orchard_lab.pipeline.hook_based_trainer:
 <li><a class="reference internal" href="#metrictracker-track-on-performance">MetricTracker: Track on performance</a></li>
 <li><a class="reference internal" href="#statsmonitor-logging-training-vitals">StatsMonitor: Logging Training Vitals</a></li>
 <li><a class="reference internal" href="#savecheckpoint-saving-your-progress">SaveCheckpoint: Saving Your Progress</a></li>
+<li><a class="reference internal" href="#advanced-creating-your-first-custom-hook">(Advanced) Creating Your First Custom Hook</a><ul>
+<li><a class="reference internal" href="#implementing-the-custom-hook-myhook">Implementing the Custom Hook: <code class="docutils literal notranslate"><span class="pre">MyHook</span></code></a></li>
+<li><a class="reference internal" href="#defining-your-custom-hook-configuration">Defining Your Custom Hook Configuration</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#dataloader-model-optimizer-and-learning-rate-scheduler">DataLoader, model, optimizer and learning rate scheduler</a></li>
