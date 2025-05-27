@@ -8,5 +8,10 @@
         "url": "https://hyxie6.github.io/first-project/robo_orchard/lab/develop/index.html",
         "name": "develop",
         "id": "develop"
+    },
+    {
+        "url": "https://hyxie6.github.io/first-project/robo_orchard/lab/0.1.0/index.html",
+        "name": "0.1.0",
+        "id": "0.1.0"
     }
 ]
