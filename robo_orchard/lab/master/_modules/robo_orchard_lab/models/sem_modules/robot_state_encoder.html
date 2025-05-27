@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>robo_orchard_lab.pipeline.hooks.optimizer - RoboOrchard Lab</title>
+        <title>robo_orchard_lab.models.sem_modules.robot_state_encoder - RoboOrchard Lab</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/autodoc_pydantic.css" />
@@ -399,10 +399,10 @@ document.addEventListener('DOMContentLoaded', function() {
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>Source code for robo_orchard_lab.pipeline.hooks.optimizer</h1><div class="highlight"><pre>
+          <h1>Source code for robo_orchard_lab.models.sem_modules.robot_state_encoder</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Project RoboOrchard</span>
 <span class="c1">#</span>
-<span class="c1"># Copyright (c) 2025 Horizon Robotics. All Rights Reserved.</span>
+<span class="c1"># Copyright (c) 2024 Horizon Robotics. All Rights Reserved.</span>
 <span class="c1">#</span>
 <span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
@@ -415,69 +415,125 @@ document.addEventListener('DOMContentLoaded', function() {
 <span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or</span>
 <span class="c1"># implied. See the License for the specific language governing</span>
 <span class="c1"># permissions and limitations under the License.</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.hooks.mixin</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">HookContext</span><span class="p">,</span>
-    <span class="n">PipelineHookArgs</span><span class="p">,</span>
-    <span class="n">PipelineHooks</span><span class="p">,</span>
-    <span class="n">PipelineHooksConfig</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+
+<span class="kn">from</span> <span class="nn">robo_orchard_lab.models.sem_modules.layers</span> <span class="kn">import</span> <span class="n">linear_act_ln</span>
+<span class="kn">from</span> <span class="nn">robo_orchard_lab.utils</span> <span class="kn">import</span> <span class="n">build</span>
 
 
-<div class="viewcode-block" id="OptimizerHook">
-<a class="viewcode-back" href="../../../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.optimizer.OptimizerHook">[docs]</a>
-<span class="k">class</span> <span class="nc">OptimizerHook</span><span class="p">(</span><span class="n">PipelineHooks</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A hook for optimizing the model during training.</span>
+<div class="viewcode-block" id="SEMRobotStateEncoder">
+<a class="viewcode-back" href="../../../../api/models/sem.html#robo_orchard_lab.models.sem_modules.robot_state_encoder.SEMRobotStateEncoder">[docs]</a>
+<span class="k">class</span> <span class="nc">SEMRobotStateEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Spatial Enhanced Manipulation (SEM) Robot State Encoder.</span>
 
-<span class="sd">    This hook is responsible for performing the optimization step</span>
-<span class="sd">    and updating the learning rate scheduler. It performs the</span>
-<span class="sd">    updating after each step of the training process.</span>
-
+<span class="sd">    Robot state encoder implementation from the paper</span>
+<span class="sd">       &#39;https://arxiv.org/abs/2505.16196&#39;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">OptimizerHookConfig</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">embed_dims</span><span class="p">,</span>
+        <span class="n">joint_self_attn</span><span class="p">,</span>
+        <span class="n">norm_layer</span><span class="p">,</span>
+        <span class="n">ffn</span><span class="p">,</span>
+        <span class="n">temp_self_attn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">state_dims</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">num_encoder</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">act_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">operation_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">pre_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span>
-            <span class="s2">&quot;on_step&quot;</span><span class="p">,</span>
-            <span class="n">HookContext</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span>
-                <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_step</span><span class="p">,</span>
-                <span class="n">before</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embed_dims</span> <span class="o">=</span> <span class="n">embed_dims</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_norm</span> <span class="o">=</span> <span class="n">pre_norm</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">linear_act_ln</span><span class="p">(</span>
+                <span class="n">embed_dims</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">state_dims</span> <span class="o">*</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">act_cfg</span><span class="o">=</span><span class="n">act_cfg</span>
             <span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">embed_dims</span><span class="p">,</span> <span class="n">embed_dims</span><span class="p">),</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_optimizer_step</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">hook_args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs an optimization step.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operation_order</span> <span class="o">=</span> <span class="n">operation_order</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_order</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">operation_order</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;joint_self_attn&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;norm&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ffn&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;norm&quot;</span><span class="p">,</span>
+            <span class="p">]</span> <span class="o">*</span> <span class="n">num_encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">op_config_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;joint_self_attn&quot;</span><span class="p">:</span> <span class="n">joint_self_attn</span><span class="p">,</span>
+            <span class="s2">&quot;temp_self_attn&quot;</span><span class="p">:</span> <span class="n">temp_self_attn</span><span class="p">,</span>
+            <span class="s2">&quot;norm&quot;</span><span class="p">:</span> <span class="n">norm_layer</span><span class="p">,</span>
+            <span class="s2">&quot;ffn&quot;</span><span class="p">:</span> <span class="n">ffn</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">build</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">op_config_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_order</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            hook_args (PipelineHookArgs): The workspace for the optimizer</span>
-<span class="sd">                hook. It should contain the following attributes:</span>
-<span class="sd">                  - accelerator: The Accelerator instance.</span>
-<span class="sd">                  - optimizer: The optimizer instance.</span>
-<span class="sd">                  - lr_scheduler: The learning rate scheduler instance.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="n">hook_args</span><span class="o">.</span><span class="n">optimizer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Optimizer is not set in the hook arguments.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">hook_args</span><span class="o">.</span><span class="n">lr_scheduler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Learning rate scheduler is not set in the hook arguments.&quot;</span>
-            <span class="p">)</span>
-        <span class="c1"># Perform the optimization step</span>
-        <span class="n">hook_args</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-        <span class="n">hook_args</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-        <span class="n">hook_args</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span></div>
-
-
-
-<div class="viewcode-block" id="OptimizerHookConfig">
-<a class="viewcode-back" href="../../../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.optimizer.OptimizerHookConfig">[docs]</a>
-<span class="k">class</span> <span class="nc">OptimizerHookConfig</span><span class="p">(</span><span class="n">PipelineHooksConfig</span><span class="p">[</span><span class="n">OptimizerHook</span><span class="p">]):</span>
-    <span class="n">class_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">OptimizerHook</span><span class="p">]</span> <span class="o">=</span> <span class="n">OptimizerHook</span></div>
+<div class="viewcode-block" id="SEMRobotStateEncoder.forward">
+<a class="viewcode-back" href="../../../../api/models/sem.html#robo_orchard_lab.models.sem_modules.robot_state_encoder.SEMRobotStateEncoder.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot_state</span><span class="p">,</span> <span class="n">joint_distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">bs</span><span class="p">,</span> <span class="n">num_step</span><span class="p">,</span> <span class="n">num_link</span> <span class="o">=</span> <span class="n">robot_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">robot_state</span> <span class="o">=</span> <span class="n">robot_state</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">num_chunk</span> <span class="o">=</span> <span class="n">num_step</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span>
+        <span class="n">robot_state</span> <span class="o">=</span> <span class="n">robot_state</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">bs</span><span class="p">,</span> <span class="n">num_link</span><span class="p">,</span> <span class="n">num_chunk</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_fc</span><span class="p">(</span><span class="n">robot_state</span><span class="p">)</span>
+        <span class="n">joint_distance</span> <span class="o">=</span> <span class="n">joint_distance</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">num_chunk</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">temp_pos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_chunk</span><span class="p">)[</span><span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">bs</span> <span class="o">*</span> <span class="n">num_link</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_norm</span><span class="p">:</span>
+            <span class="n">identity</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">identity</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">op</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operation_order</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;joint_self_attn&quot;</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">identity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_identity</span> <span class="o">=</span> <span class="n">identity</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_identity</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
+                    <span class="n">query</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">query_pos</span><span class="o">=</span><span class="n">joint_distance</span><span class="p">,</span>
+                    <span class="n">identity</span><span class="o">=</span><span class="n">_identity</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">unflatten</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">bs</span><span class="p">,</span> <span class="n">num_chunk</span><span class="p">))</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;temp_self_attn&quot;</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">identity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_identity</span> <span class="o">=</span> <span class="n">identity</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_identity</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
+                    <span class="n">query</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">query_pos</span><span class="o">=</span><span class="n">temp_pos</span><span class="p">,</span>
+                    <span class="n">key_pos</span><span class="o">=</span><span class="n">temp_pos</span><span class="p">,</span>
+                    <span class="n">identity</span><span class="o">=</span><span class="n">_identity</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">unflatten</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">bs</span><span class="p">,</span> <span class="n">num_link</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;ffn&quot;</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">identity</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;norm&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_norm</span><span class="p">:</span>
+                    <span class="n">identity</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span>  <span class="c1"># bs, num_link, num_chunk, c</span></div>
+</div>
 
 </pre></div>
         </article>
