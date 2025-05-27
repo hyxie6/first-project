@@ -10,7 +10,7 @@ The architecture is designed to separate concerns, promote reusability, and faci
 
 Below is a high-level diagram illustrating the main components and their interactions:
 
-.. image:: ../_static/lab_architecture.png
+.. image:: ../_static/overview/lab_architecture.png
    :alt: System Architecture Diagram
    :align: center
    :width: 100%
@@ -63,7 +63,7 @@ Understanding this pipeline and its hook points is key to customizing and extend
 
 The following flowchart illustrates the primary execution flow, with a focus on when different hook channels are activated:
 
-.. image:: ../_static/engine_architecture.png
+.. image:: ../_static/overview/engine_architecture.png
    :alt: Engine Architecture Diagram
    :align: center
    :width: 100%
