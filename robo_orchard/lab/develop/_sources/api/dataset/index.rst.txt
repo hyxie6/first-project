@@ -1,0 +1,9 @@
+
+dataset
+===========
+
+.. toctree::
+    :maxdepth: 1
+    :includehidden:
+
+    embodiedscan
