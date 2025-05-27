@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Model Zoo" href="../model_zoo/index.html" /><link rel="prev" title="Getting Started" href="../getting_started/index.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Architecture" href="lab_arch.html" /><link rel="prev" title="Installation" href="../getting_started/install.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Overview - RoboOrchard Lab</title>
@@ -186,7 +186,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -207,7 +207,7 @@
 </a>
 <meta name="current-version-id" content="master">
 
-<meta name="versions-json-url" content="https://hyxie6.github.io/first-project/robo_orchard/lab/version.json">
+<meta name="versions-json-url" content="https://HorizonRobotics.github.io/robot_lab/robo_orchard/lab/version.json">
 
 <div id="version-selector-wrapper"
      style="visibility: hidden;
@@ -318,18 +318,25 @@ document.addEventListener('DOMContentLoaded', function() {
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../getting_started/index.html">Getting Started</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Getting Started</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started/install.html">Installation</a></li>
+</ul>
+</li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Overview</a></li>
+<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Overview</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Overview</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="lab_arch.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="engine_arch.html">Engine Architecture</a></li>
+</ul>
+</li>
 </ul>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../model_zoo/index.html">Model Zoo</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Model Zoo</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../model_zoo/perception/index.html">Perception</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Perception</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model_zoo/index.html">Model Zoo</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Model Zoo</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../model_zoo/perception/index.html">Perception</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Perception</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../model_zoo/perception/bip3d.html">BIP3D: Bridging 2D Images and 3D Perception for Embodied Intelligence</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../model_zoo/embodied/index.html">Embodied</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Embodied</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../model_zoo/embodied/index.html">Embodied</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Embodied</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../model_zoo/embodied/sem.html">SEM: Enhancing Spatial Understanding for Robust Robot Manipulation</a></li>
 </ul>
 </li>
@@ -337,27 +344,27 @@ document.addEventListener('DOMContentLoaded', function() {
 </li>
 </ul>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../build/trainer_tutorial/index.html">Trainer Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Trainer Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../build/trainer_tutorial/index.html">Trainer Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Trainer Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../build/trainer_tutorial/nonb-01_basic_example.html">Mastering Your Training Pipeline</a></li>
 </ul>
 </li>
 </ul>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/dataset/index.html">dataset</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of dataset</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/dataset/index.html">dataset</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of dataset</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../api/dataset/lmdb.html">LMDB</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/dataset/embodiedscan.html">Embediedscan</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/dataset/robotwin.html">RoboTwin</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/models/index.html">models</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of models</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/models/index.html">models</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of models</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../api/models/layers.html">Layers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/models/modules.html">Modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/models/bip3d.html">BIP3D</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/models/sem.html">SEM</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/pipeline/index.html">pipeline</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of pipeline</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/pipeline/index.html">pipeline</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of pipeline</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../api/pipeline/trainer.html">trainer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pipeline/batch_processor.html">batch processor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pipeline/hooks.html">hooks</a></li>
@@ -400,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -408,129 +415,12 @@ document.addEventListener('DOMContentLoaded', function() {
         <article role="main" id="furo-main-content">
           <section id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
-<section id="architecture">
-<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
-<p>The <strong>RoboOrchardLab</strong> framework is engineered with modularity and clarity at its core, enabling researchers and developers to efficiently build, train, and evaluate embodied AI agents.
-The architecture is designed to separate concerns, promote reusability, and facilitate easy extension.</p>
-<p>Below is a high-level diagram illustrating the main components and their interactions:</p>
-<a class="reference internal image-reference" href="../_images/lab_architecture.png"><img alt="System Architecture Diagram" class="align-center" src="../_images/lab_architecture.png" style="width: 100%;" />
-</a>
-<p>This diagram highlights the following key components and their roles:</p>
-<section id="configuration-system">
-<h3>Configuration System<a class="headerlink" href="#configuration-system" title="Link to this heading">¶</a></h3>
-<p>This is the foundational layer that drives the entire framework, powered by <a class="reference external" href="https://docs.pydantic.dev/">Pydantic</a>. It handles the definition, validation, serialization, and deserialization of all experiment parameters and component configurations.
-It provides settings for data processing, model architectures, optimizer and scheduler choices, and the behavior of the training engine itself.</p>
-</section>
-<section id="data-module">
-<h3>Data Module<a class="headerlink" href="#data-module" title="Link to this heading">¶</a></h3>
-<p>Responsible for all aspects of data handling. This includes defining Dataset objects, specifying data transforms and augmentations, and configuring DataLoader and Sampler instances for efficient batching and iteration.</p>
-</section>
-<section id="models-module">
-<h3>Models Module<a class="headerlink" href="#models-module" title="Link to this heading">¶</a></h3>
-<p>This module houses the neural network architectures for various tasks. These are broadly categorized into:</p>
-<ul class="simple">
-<li><p><strong>Perception:</strong> Specialized models for understanding the environment, such as <strong>BIP3D</strong> for advanced 3D object detection from visual input.</p></li>
-<li><p><strong>Embodied AI Algorithms:</strong>: Higher-level policies and models for agent interaction, including <strong>SEM</strong>, <strong>Grasping</strong>, <strong>Whole-body Control</strong> (algorithms designed for complex robot motion planning and coordination, under development)</p></li>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lab_arch.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="engine_arch.html">Engine Architecture</a></li>
 </ul>
-</section>
-<section id="optimizer-lr-scheduler-module">
-<h3>Optimizer &amp; LR Scheduler Module<a class="headerlink" href="#optimizer-lr-scheduler-module" title="Link to this heading">¶</a></h3>
-<p>This distinct module manages the optimization algorithms (e.g., Adam, SGD) and learning rate scheduling strategies (e.g., StepLR, CosineAnnealingLR).</p>
-</section>
-<section id="engine">
-<h3>Engine<a class="headerlink" href="#engine" title="Link to this heading">¶</a></h3>
-<p>The central orchestrator of the framework. The Engine takes the data, models, optimizer, and scheduler, and executes the defined pipelines for training and evaluation.
-It manages the main training loop, incorporates various hooks (for functionalities like checkpointing, TensorBoard logging, statistics monitoring, etc.), and handles the overall execution flow.</p>
-</section>
-<section id="accelerator">
-<h3>Accelerator<a class="headerlink" href="#accelerator" title="Link to this heading">¶</a></h3>
-<p>Leveraging Hugging Face Accelerate, this component provides seamless support for distributed training (e.g., DDP, FSDP) and mixed-precision training.
-It works in conjunction with the Engine to abstract away the complexities of different hardware setups (single GPU, multi-GPU, multi-node) and optimize training performance.</p>
-</section>
-</section>
-<section id="engine-architecture">
-<h2>Engine Architecture<a class="headerlink" href="#engine-architecture" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">Engine</span></code> in <strong>RoboOrchardLab</strong> orchestrates the training and evaluation processes through a well-defined pipeline.
-This pipeline is highly extensible via a system of hooks that can be triggered at various stages.
-Understanding this pipeline and its hook points is key to customizing and extending the framework’s behavior.</p>
-<p>The following flowchart illustrates the primary execution flow, with a focus on when different hook channels are activated:</p>
-<a class="reference internal image-reference" href="../_images/engine_architecture.png"><img alt="Engine Architecture Diagram" class="align-center" src="../_images/engine_architecture.png" style="width: 100%;" />
-</a>
-<p>The whole training process with hooks is as follows:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>with on_loop:
-    with on_epoch:
-        for batch in dataloader:
-            with on_step:
-                with on_batch:
-                    batch_processor(...)
-                    ...
-
-                update step id
-    update epoch id
-</pre></div>
 </div>
-<section id="hook-module">
-<h3>Hook Module<a class="headerlink" href="#hook-module" title="Link to this heading">¶</a></h3>
-<p>The pipeline is structured as a series of nested loops and contexts, each providing specific hook channels for user intervention:</p>
-<ol class="arabic simple">
-<li><p><strong>Overall Run Context (``on_loop``)</strong>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_loop_begin</span></code>: Called once at the very beginning of the entire run (e.g., <cite>engine()</cite> call). Ideal for global setup, like initializing external loggers or loading comprehensive resources.</p></li>
-<li><p><em>(Main execution of epochs occurs here)</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_loop_end</span></code>: Called once at the very end of the entire run. Suitable for final cleanup, saving summary reports, or closing external services.</p></li>
-</ul>
-</li>
-<li><p><strong>Epoch Context (``on_epoch``)</strong>: This loop iterates for the configured number of epochs.</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_epoch_begin</span></code>: Called at the start of each epoch. Useful for epoch-specific setup, resetting epoch-level metrics, or adjusting dynamic parameters.</p></li>
-<li><p><em>(Main execution of steps/batches within the epoch occurs here)</em></p></li>
-<li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_epoch_end</span></code>: Called at the end of each epoch. This is a common place to:</dt><dd><ul>
-<li><p>Run an evaluation phase (see “Evaluation Pipeline” below).</p></li>
-<li><p>Perform learning rate scheduler steps (for epoch-based schedulers).</p></li>
-<li><p>Save epoch-level checkpoints.</p></li>
-<li><p>Aggregate and log epoch-wide metrics.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</li>
-<li><p><strong>Step Context (Optimizer Step - ``on_step``)</strong>: This loop typically corresponds to one optimizer update (an “optimizer step”). When using gradient accumulation, one “step” can encompass multiple “batch” (micro-batch) forward/backward passes.</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_step_begin</span></code>: Called at the beginning of an optimizer step, before processing any micro-batches for this step.</p></li>
-<li><p><em>(Processing of one or more micro-batches occurs here)</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_step_end</span></code>: Called after all micro-batches for the current optimizer step have been processed and typically after the optimizer has updated the model weights (e.g., after <code class="docutils literal notranslate"><span class="pre">optimizer.step()</span></code> and <code class="docutils literal notranslate"><span class="pre">optimizer.zero_grad()</span></code>). Good for step-level logging, and some LR scheduler updates.</p></li>
-</ul>
-</li>
-<li><p><strong>Batch Context (Micro-batch Processing - ``on_batch``)</strong>: This is the innermost loop if gradient accumulation is used, or it might be equivalent to the “step” loop if accumulation is not active (i.e., 1 batch = 1 optimizer step). It processes a single batch of data through the model.</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_batch_begin</span></code>: Called before the forward and backward pass of a single batch.</p></li>
-<li><p><em>(Model forward and backward passes occur here)</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_batch_end</span></code>: Called after the forward and backward pass of a single batch.</p></li>
-</ul>
-</li>
-<li><p><strong>Model Execution Contexts</strong>: These hooks provide fine-grained control around the model’s forward and backward passes for each batch.</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_model_forward_begin</span></code>: Called just before <code class="docutils literal notranslate"><span class="pre">batch_processor:</span> <span class="pre">forward</span></code>.</p></li>
-<li><p><em>(``batch_processor: forward`` executes model’s forward pass and loss computation)</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_model_forward_end</span></code>: Called just after <code class="docutils literal notranslate"><span class="pre">batch_processor:</span> <span class="pre">forward</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_model_backward_begin</span></code>: Called just before <code class="docutils literal notranslate"><span class="pre">batch_processor:</span> <span class="pre">backward</span></code> (which internally calls <code class="docutils literal notranslate"><span class="pre">accelerator.backward(loss)</span></code>).</p></li>
-<li><p><em>(``batch_processor: backward`` executes the backward pass)</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hook:</span> <span class="pre">on_model_backward_end</span></code>: Called just after <code class="docutils literal notranslate"><span class="pre">batch_processor:</span> <span class="pre">backward</span></code>.</p></li>
-</ul>
-</li>
-<li><p><strong>Extensibility</strong>: This structured pipeline with its numerous hook channels allows for significant customization. Users can inject their own logic for metric calculation, logging, checkpointing, learning rate scheduling, early stopping, custom data manipulations, and much more, without altering the core <code class="docutils literal notranslate"><span class="pre">Engine</span></code> code. This makes RoboOrchardLab highly adaptable to diverse research needs.</p></li>
-</ol>
-</section>
-<section id="batch-processor-module">
-<h3>Batch Processor Module<a class="headerlink" href="#batch-processor-module" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><strong>``batch_processor: forward``</strong>: This is where the model processes the input batch, and typically, the loss is computed.</p></li>
-<li><p><strong>``batch_processor: backward``</strong>: This stage performs the backpropagation using the computed loss. The actual <code class="docutils literal notranslate"><span class="pre">optimizer.step()</span></code> and <code class="docutils literal notranslate"><span class="pre">optimizer.zero_grad()</span></code> are managed by the <code class="docutils literal notranslate"><span class="pre">Engine</span></code> in conjunction with the <code class="docutils literal notranslate"><span class="pre">on_step_*</span></code> hooks and <code class="docutils literal notranslate"><span class="pre">Accelerator</span></code> (especially when using gradient accumulation via <code class="docutils literal notranslate"><span class="pre">accelerator.accumulate()</span></code>).</p></li>
-</ul>
-</section>
-</section>
 </section>
 
         </article>
@@ -538,23 +428,23 @@ Understanding this pipeline and its hook points is key to customizing and extend
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../model_zoo/index.html">
+          <a class="next-page" href="lab_arch.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Model Zoo</div>
+                <div class="title">Architecture</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../getting_started/index.html">
+          <a class="prev-page" href="../getting_started/install.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Getting Started</div>
+                <div class="title">Installation</div>
                 
               </div>
             </a>
@@ -583,40 +473,8 @@ Understanding this pipeline and its hook points is key to customizing and extend
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Overview</a><ul>
-<li><a class="reference internal" href="#architecture">Architecture</a><ul>
-<li><a class="reference internal" href="#configuration-system">Configuration System</a></li>
-<li><a class="reference internal" href="#data-module">Data Module</a></li>
-<li><a class="reference internal" href="#models-module">Models Module</a></li>
-<li><a class="reference internal" href="#optimizer-lr-scheduler-module">Optimizer &amp; LR Scheduler Module</a></li>
-<li><a class="reference internal" href="#engine">Engine</a></li>
-<li><a class="reference internal" href="#accelerator">Accelerator</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#engine-architecture">Engine Architecture</a><ul>
-<li><a class="reference internal" href="#hook-module">Hook Module</a></li>
-<li><a class="reference internal" href="#batch-processor-module">Batch Processor Module</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
