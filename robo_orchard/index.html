@@ -2,14 +2,83 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Robo Orchard</title>
+    <title>Robot Lab</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6; /* 淡雅的背景色 */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* 使内容在视口中垂直居中（如果内容较少） */
+        }
+        .container {
+            background-color: #ffffff; /* 内容区域白色背景 */
+            padding: 30px 40px;
+            border-radius: 8px; /* 圆角 */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* 细微阴影增加立体感 */
+            max-width: 800px; /* 限制最大宽度，使其在宽屏上更易读 */
+            width: 90%; /* 响应式宽度 */
+            text-align: center; /* 内容居中 */
+        }
+        h1 {
+            color: #2c3e50; /* 标题颜色，深蓝灰色 */
+            margin-bottom: 25px;
+            font-size: 2.5em; /* 增大标题字号 */
+        }
+        p {
+            color: #555; /* 段落文字颜色 */
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        ul {
+            list-style-type: none; /* 移除列表默认的小圆点 */
+            padding-left: 0; /* 移除列表默认的左边距 */
+            margin-bottom: 25px;
+        }
+        li {
+            margin-bottom: 12px; /* 列表项之间的间距 */
+            background-color: #e9ecef; /* 列表项背景色 */
+            padding: 12px 18px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease; /* 平滑过渡效果 */
+        }
+        li:hover {
+            background-color: #dde2e6; /* 鼠标悬停时改变背景色 */
+        }
+        a {
+            text-decoration: none; /* 移除链接下划线 */
+            color: #007bff; /* 链接颜色，明亮的蓝色 */
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #0056b3; /* 鼠标悬停时链接颜色加深 */
+            text-decoration: underline; /* 鼠标悬停时显示下划线 */
+        }
+        .construction-notice {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #fff3cd; /* 温馨的提示背景色 */
+            border: 1px solid #ffeeba; /* 提示边框颜色 */
+            color: #856404; /* 提示文字颜色 */
+            border-radius: 5px;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-    <h1>Robo Orchard</h1>
-    <p>这是 Robo Orchard 项目的入口。详细实验文档请访问：</p>
-    <ul>
-        <li><a href="./lab/index.html">Robo Orchard Lab 文档</a></li>
-    </ul>
-    <p>此页面正在建设中。</p>
+    <div class="container">
+        <h1>Robo Orchard 项目</h1>
+        <p>欢迎来到 Robot Orchard 项目。主要文档位于：</p>
+        <ul>
+            <li><a href="./lab/index.html">Robo Orchard Lab项目文档</a></li>
+            </ul>
+        <p class="construction-notice">🛠️ 此页面正在建设中，敬请期待更多内容！</p>
+    </div>
 </body>
 </html>
