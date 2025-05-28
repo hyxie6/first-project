@@ -4,7 +4,7 @@
 <head><meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="light dark" name="color-scheme"/><meta content="width=device-width, initial-scale=1" name="viewport">
-<link href="../../genindex.html" rel="index" title="Index"/><link href="../../search.html" rel="search" title="Search"/><link href="../models/index.html" rel="next" title="models"/><link href="index.html" rel="prev" title="dataset"/>
+<link href="../../genindex.html" rel="index" title="Index"/><link href="../../search.html" rel="search" title="Search"/><link href="robotwin.html" rel="next" title="RoboTwin"/><link href="lmdb.html" rel="prev" title="LMDB"/>
 <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
 <title>Embediedscan - RoboOrchard Lab</title>
 <link href="../../_static/pygments.css?v=80d5e7a1" rel="stylesheet" type="text/css"/>
@@ -173,8 +173,8 @@
 <div class="sidebar-container">
 <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
 <div class="sidebar-logo-container">
-<img alt="Light Logo" class="sidebar-logo only-light" src="../../_static/orchard_logo.png"/>
-<img alt="Dark Logo" class="sidebar-logo only-dark" src="../../_static/orchard_logo.png"/>
+<img alt="Light Logo" class="sidebar-logo only-light" src="../../_static/logo/orchard_logo.png"/>
+<img alt="Dark Logo" class="sidebar-logo only-dark" src="../../_static/logo/orchard_logo.png"/>
 </div>
 <span class="sidebar-brand-text">RoboOrchard Lab</span>
 </a>
@@ -286,39 +286,53 @@ document.addEventListener('DOMContentLoaded', function() {
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Getting Started</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting_started/install.html">Installation</a></li>
+</ul>
+</input></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../overview/index.html">Overview</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../overview/index.html">Overview</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Overview</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../overview/lab_arch.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../overview/engine_arch.html">Engine Architecture</a></li>
+</ul>
+</input></li>
 </ul>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../model_zoo/index.html">Model Zoo</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Model Zoo</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../model_zoo/perception/index.html">Perception</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Perception</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../model_zoo/index.html">Model Zoo</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Model Zoo</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../model_zoo/perception/index.html">Perception</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Perception</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../model_zoo/perception/bip3d.html">BIP3D: Bridging 2D Images and 3D Perception for Embodied Intelligence</a></li>
 </ul>
 </input></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../model_zoo/embodied/index.html">Embodied</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Embodied</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../model_zoo/embodied/sem.html">SEM: Enhancing Spatial Understanding for Robust Robot Manipulation</a></li>
+</ul>
+</input></li>
 </ul>
 </input></li>
 </ul>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../build/trainer_tutorial/index.html">Trainer Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Trainer Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../build/trainer_tutorial/index.html">Trainer Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Trainer Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../build/trainer_tutorial/nonb-01_basic_example.html">Mastering Your Training Pipeline</a></li>
 </ul>
-</input></li>
+</li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">dataset</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of dataset</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">dataset</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of dataset</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="lmdb.html">LMDB</a></li>
 <li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Embediedscan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="robotwin.html">RoboTwin</a></li>
 </ul>
-</input></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../models/index.html">models</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of models</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../models/index.html">models</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of models</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../models/layers.html">Layers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../models/modules.html">Modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../models/bip3d.html">BIP3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/sem.html">SEM</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../pipeline/index.html">pipeline</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of pipeline</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../pipeline/index.html">pipeline</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of pipeline</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pipeline/trainer.html">trainer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pipeline/batch_processor.html">batch processor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pipeline/hooks.html">hooks</a></li>
@@ -326,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../utils/index.html">utils</a></li>
 </ul>
-</input></li>
+</li>
 </ul>
 </div>
 </div>
@@ -447,22 +461,22 @@ If <code class="docutils literal notranslate"><span class="pre">None</span></cod
 </div>
 <footer>
 <div class="related-pages">
-<a class="next-page" href="../models/index.html">
+<a class="next-page" href="robotwin.html">
 <div class="page-info">
 <div class="context">
 <span>Next</span>
 </div>
-<div class="title">models</div>
+<div class="title">RoboTwin</div>
 </div>
 <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
 </a>
-<a class="prev-page" href="index.html">
+<a class="prev-page" href="lmdb.html">
 <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
 <div class="page-info">
 <div class="context">
 <span>Previous</span>
 </div>
-<div class="title">dataset</div>
+<div class="title">LMDB</div>
 </div>
 </a>
 </div>

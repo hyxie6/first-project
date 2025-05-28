@@ -8,8 +8,8 @@ and demonstrate the capabilities of our framework.
 Here you will find models covering a range of tasks, including (but not limited to):
 
 * 3D Object Detection
+* Vision-Language Actions (VLA)
 * (Comming soon) Robotic Grasping
-* (Comming soon) Vision-Language Actions (VLA)
 * Other perception and control tasks relevant to embodied agents.
 
 We particularly highlight algorithms and models published by our team, providing a direct pathway to reproduce and extend our research contributions.
@@ -28,3 +28,4 @@ We are continuously working to expand this collection. Please browse the availab
     :includehidden:
 
     perception/index
+    embodied/index
