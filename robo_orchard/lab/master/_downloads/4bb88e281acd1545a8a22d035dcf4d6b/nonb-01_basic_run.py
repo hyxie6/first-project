@@ -16,7 +16,7 @@
 # implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-"""Mastering Your Training Pipeline
+"""Configuration & Your First Basic Training Run
 ==========================================================
 """
 
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 # %%
-# Part1: Using pydantic for configuration
+# Using pydantic for configuration
 # ---------------------------------------------------------
 # Our framework emphasizes configuration-driven training. Let's look at DatasetConfig
 #
@@ -169,7 +169,8 @@ class TrainerConfig(SettingConfig):
 
 
 cfg = TrainerConfig(
-    dataset=DatasetConfig(pipeline_test=True), max_epoch=5, num_workers=0
+    dataset=DatasetConfig(pipeline_test=True), max_epoch=5, num_workers=0,
+    workspace_root="./workspace/tutorial1/"
 )
 
 
@@ -177,7 +178,7 @@ cfg = TrainerConfig(
 # These Pydantic models can also parsed from command-line arguments using ``pydantic_from_argparse(TrainerConfig, parser)``. This means you can override any setting from the CLI, e.g., ``--batch_size 64`` or even nested ones like ``--dataset.data_root /path/to/my/data``.
 
 # %%
-# Part2: Understanding the Core trainer Components
+# Understanding the Core trainer Components
 # ---------------------------------------------------------
 # Let's dive into the specific components from robo_orchard_lab that make this work.
 #
@@ -213,7 +214,7 @@ accelerator = Accelerator(
 # Batch processor: Defining Per-Step Logic
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # Instead of hard coding the forward pass and loss calculation within the trainer, we use a BatchProcessor.
-# MyBatchProcessor inherits from :py:class:`robo_orchard_lab.pipeline.batch_processor.simple.SimpleBatchProcessor`.
+# MyBatchProcessor inherits from :py:class:`~robo_orchard_lab.pipeline.batch_processor.simple.SimpleBatchProcessor`.
 #
 # You define your loss function (here, CrossEntropyLoss) in ``__init__``.
 # ``forward`` contains the logic for a single step: getting model output and calculating loss.
@@ -252,231 +253,16 @@ class MyBatchProcessor(SimpleBatchProcessor):
 # Hooks are the primary way to add custom behavior to the training or evaluation loop without modifying its source code.
 # They are called at specific points during training or evaluation (e.g., end of epoch, after a step).
 #
-# Core Concepts of the ``PipelineHooks`` System
-#
-# * :py:class:`robo_orchard_lab.pipeline.hooks.mixin.PipelineHookArgs`: A dataclass holding all relevant information (accelerator,
-#   epoch/step IDs, batch data, model outputs, loss, etc.) passed to each hook.
-#   This ensures hooks have a standardized, type-safe context.
-#
-# * :py:class:`robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig`: The entire :py:class:`robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks` setup,
-#   including which individual hooks are active and their parameters, can often be defined via Pydantic configurations.
-#   This offers great flexibility and reproducibility. For instance, a main
-#   experiment config might point to a :py:class:`robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig`,
-#   which in turn might specify a list of individual hook configurations (e.g.,
-#   :py:class:`robo_orchard_lab.pipeline.hooks.metric.MetricTrackerConfig`,
-#   :py:class:`robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig`).
+# For more details please visit the next tutorial, in this tutorial, we will only use the StatsMonitor hook for logging.
 #
 
 hooks = []
-
-# %%
-# MetricTracker: Track on performance
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# :py:class:`robo_orchard_lab.pipeline.hooks.metric.MetricTracker` is a specialized hook for handling metrics.
-# It takes a list of :py:class:`robo_orchard_lab.pipeline.hooks.metric.MetricEntry` objects. Each MetricEntry defines:
-#
-# * names: How the metric will be logged.
-#
-# * metric: An instance of a torchmetrics metric (or any compatible metric object).
-#
-# :py:class:`robo_orchard_lab.pipeline.hooks.metric.MetricTracker` is an abstarct class, you should inherit it
-# and implement the :py:meth:`robo_orchard_lab.pipeline.hooks.metric.MetricTracker.update_metric` method, which is called by the trainer to update these metrics with batch outputs and targets.
-#
-
-from torchmetrics import Accuracy as AccuracyMetric
-
-from robo_orchard_lab.pipeline.hooks import (
-    MetricEntry,
-    MetricTracker,
-    MetricTrackerConfig,
-)
-
-
-class MyMetricTracker(MetricTracker):
-    def update_metric(self, batch: Any, model_outputs: Any):
-        _, targets = batch
-        for metric_i in self.metrics:
-            metric_i(model_outputs, targets)
-
-
-class MyMetricTrackerConfig(MetricTrackerConfig):
-    """An example metric tracker config."""
-
-    # note: bind MyMetricTracker
-    class_type: type[MyMetricTracker] = MyMetricTracker
-
-
-metric_tracker = MyMetricTrackerConfig(
-    metric_entrys=[
-        MetricEntry(
-            names=["top1_acc"],
-            metric=AccuracyMetric(
-                task="multiclass", num_classes=1000, top_k=1
-            ),
-        ),
-        MetricEntry(
-            names=["top5_acc"],
-            metric=AccuracyMetric(
-                task="multiclass", num_classes=1000, top_k=5
-            ),
-        ),
-    ],
-    step_log_freq=64,
-    log_main_process_only=False,
-)
-
-hooks.append(metric_tracker)
-
-# %%
-# StatsMonitor: Logging Training Vitals
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# :py:class:`robo_orchard_lab.pipeline.hooks.stats.StatsMonitor` monitors and logs statistics like learning rate, training speed (samples/sec), estimated time remaining, etc.
-# Its ``step_log_freq`` controls how often this information is printed or logged.
-#
 
 from robo_orchard_lab.pipeline.hooks import StatsMonitorConfig
 
 stats = StatsMonitorConfig(step_log_freq=64)
 
 hooks.append(stats)
-
-# %%
-# SaveCheckpoint: Saving Your Progress
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# :py:class:`robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig` is responsible for triggering model checkpoint saves.
-# It calls :py:class:`acclerator.Accelerator.save_state()`` internally. ``save_step_freq`` defines how many training steps between checkpoints.
-# Resuming is handled by Accelerator
-#
-
-from robo_orchard_lab.pipeline.hooks import SaveCheckpointConfig
-
-save_checkpoint = SaveCheckpointConfig(save_step_freq=1024)
-
-hooks.append(save_checkpoint)
-
-# %%
-# (Advanced) Creating Your First Custom Hook
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# In many complex training scenarios, you might need to inject custom logic at various
-# points within the training loop (e.g., at the beginning/end of an epoch, or before/after
-# a training step). The ``robo_orchard_lab`` framework provides a powerful and flexible
-# Hook system based on ``PipelineHooks`` to achieve this without modifying the core
-# training engine.
-#
-# This tutorial will guide you through:
-# 1. Understanding the core components: ``PipelineHooksConfig``, ``PipelineHooks``, ``HookContext``, and ``PipelineHookArgs``.
-# 2. Creating a custom hook class that bundles logging logic for different training stages.
-# 3. Configuring and instantiating your custom hook.
-# 4. (Simulated) Seeing how this hook would interact with a training engine.
-#
-# Let's get started!
-
-# %%
-# Implementing the Custom Hook: ``MyHook``
-# """"""""""""""""""""""""""""""""""""""""""""""""""""
-#
-# Let's define ``MyHook``. It inherits from ``PipelineHooks``.
-# In its ``__init__`` method, it takes its configuration (``MyHookConfig``)
-# and registers its own internal methods as callbacks to different channels
-# using ``self.register_hook()`` and ``HookContext.from_callable()``.
-#
-# ``HookContext.from_callable(before=..., after=...)`` is a convenient way to create
-# a ``HookContext`` object where its ``on_enter`` method will call the ``before``
-# function, and its ``on_exit`` method will call the ``after`` function.
-#
-
-from robo_orchard_lab.pipeline.hooks.mixin import (
-    HookContext,
-    PipelineHookArgs,
-    PipelineHooks,
-    PipelineHooksConfig,
-)
-
-
-class MyHook(PipelineHooks):
-    """A custom hook that logs messages at the beginning and end of loops, epochs, and steps, based on configured frequencies."""
-
-    def __init__(self, cfg: "MyHookConfig"):
-        super().__init__()
-        self.cfg = cfg
-
-        # Register loop-level hooks
-        self.register_hook(
-            channel="on_loop",
-            hook=HookContext.from_callable(
-                before=self._on_loop_begin, after=self._on_loop_end
-            ),
-        )
-
-        # Register step-level hooks
-        self.register_hook(
-            channel="on_step",
-            hook=HookContext.from_callable(
-                before=self._on_step_begin, after=self._on_step_end
-            ),
-        )
-
-        # Register epoch-level hooks
-        self.register_hook(
-            channel="on_epoch",
-            hook=HookContext.from_callable(
-                before=self._on_epoch_begin, after=self._on_epoch_end
-            ),
-        )
-
-        logger.info(
-            f"MyHook instance created with step_freq={self.cfg.log_step_freq}, epoch_freq={self.cfg.log_epoch_freq}"
-        )
-
-    def _on_loop_begin(self, args: PipelineHookArgs):
-        logger.info("Begining loop")
-
-    def _on_loop_end(self, args: PipelineHookArgs):
-        logger.info("Ended loop")
-
-    def _on_step_begin(self, args: PipelineHookArgs):
-        # Note: step_id is 0-indexed. Adding 1 for 1-indexed frequency check.
-        if (args.step_id + 1) % self.cfg.log_step_freq == 0:
-            logger.info("Begining {}-th step".format(args.step_id))
-
-    def _on_step_end(self, args: PipelineHookArgs):
-        if (args.step_id + 1) % self.cfg.log_step_freq == 0:
-            logger.info("Ended {}-th step".format(args.step_id))
-
-    def _on_epoch_begin(self, args: PipelineHookArgs):
-        # Note: epoch_id is 0-indexed. Adding 1 for 1-indexed frequency check.
-        if (args.epoch_id + 1) % self.cfg.log_epoch_freq == 0:
-            logger.info("Begining {}-th epoch".format(args.epoch_id))
-
-    def _on_epoch_end(self, args: PipelineHookArgs):
-        if (args.epoch_id + 1) % self.cfg.log_epoch_freq == 0:
-            logger.info("Ended {}-th epoch".format(args.epoch_id))
-
-
-# %%
-# Defining Your Custom Hook Configuration
-# """"""""""""""""""""""""""""""""""""""""""""""""""""
-#
-# Then, we define a Pydantic configuration class for our custom hook.
-# This class will inherit from ``PipelineHooksConfig`` and specify our custom hook
-# class as its ``class_type``. It will also hold any parameters our hook needs,
-# like logging frequencies.
-#
-
-
-class MyHookConfig(PipelineHooksConfig[MyHook]):
-    class_type: type[MyHook] = MyHook
-    log_step_freq: int = 5
-    log_epoch_freq: int = 1
-
-
-my_hook = MyHookConfig()
-
-hooks.append(my_hook)
-
 
 # %%
 # DataLoader, model, optimizer and learning rate scheduler
@@ -501,10 +287,10 @@ optimizer = SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
 lr_scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
 
 # %%
-# Part3: Orchestrating the Training
+# Orchestrating the Training
 # ---------------------------------------------------------
 #
-# :py:class:`robo_orchard_lab.pipeline.hook_based_trainer.HookBasedTrainer` is the heart of your training loop.
+# :py:class:`~robo_orchard_lab.pipeline.hook_based_trainer.HookBasedTrainer` is the heart of your training loop.
 # It takes all necessary PyTorch components (model, dataloader, optimizer, scheduler) and crucially,
 # the accelerator and a batch_processor. The hooks list allows for powerful customization, which we have explored before.
 #
@@ -523,20 +309,7 @@ trainer = HookBasedTrainer(
 )
 
 # %%
-# Show hooks
-#
-
-print(trainer.hooks)
-
-# %%
 # Begin training
 #
 
 trainer()
-
-# %%
-# All the checkpoints is saved to ``cfg.workspace``
-
-import subprocess
-
-print(subprocess.check_output(["tree", cfg.workspace_root]).decode())

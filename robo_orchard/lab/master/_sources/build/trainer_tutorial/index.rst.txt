@@ -25,18 +25,52 @@ Here are the key highlights:
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Mastering Your Training Pipeline">
+    <div class="sphx-glr-thumbcontainer" tooltip="Configuration &amp; Your First Basic Training Run">
 
 .. only:: html
 
-  .. image:: /build/trainer_tutorial/images/thumb/sphx_glr_nonb-01_basic_example_thumb.png
+  .. image:: /build/trainer_tutorial/images/thumb/sphx_glr_nonb-01_basic_run_thumb.png
     :alt:
 
-  :ref:`sphx_glr_build_trainer_tutorial_nonb-01_basic_example.py`
+  :ref:`sphx_glr_build_trainer_tutorial_nonb-01_basic_run.py`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Mastering Your Training Pipeline</div>
+      <div class="sphx-glr-thumbnail-title">Configuration & Your First Basic Training Run</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Hooks are the primary way to add custom behavior to the training or evaluation loop without modifying its source code. They are called at specific points during training or evaluation (e.g., end of epoch, after a step).">
+
+.. only:: html
+
+  .. image:: /build/trainer_tutorial/images/thumb/sphx_glr_nonb-02_built_in_hooks_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_build_trainer_tutorial_nonb-02_built_in_hooks.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Leveraging Built-in Hooks for Common Training Tasks</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This tutorial will guide you through: 1. Understanding the core components: PipelineHooksConfig, PipelineHooks, HookContext, and PipelineHookArgs. 2. Creating a custom hook class that bundles logging logic for different training stages. 3. Configuring and instantiating your custom hook. 4. (Simulated) Seeing how this hook would interact with a training engine.">
+
+.. only:: html
+
+  .. image:: /build/trainer_tutorial/images/thumb/sphx_glr_nonb-03_custom_hook_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_build_trainer_tutorial_nonb-03_custom_hook.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">(Advanced) Creating Custom Hooks for Tailored Logic</div>
     </div>
 
 
@@ -50,7 +84,9 @@ Here are the key highlights:
 .. toctree::
    :hidden:
 
-   /build/trainer_tutorial/nonb-01_basic_example
+   /build/trainer_tutorial/nonb-01_basic_run
+   /build/trainer_tutorial/nonb-02_built_in_hooks
+   /build/trainer_tutorial/nonb-03_custom_hook
 
 
 

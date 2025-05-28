@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Mastering Your Training Pipeline" href="nonb-01_basic_example.html" /><link rel="prev" title="SEM: Enhancing Spatial Understanding for Robust Robot Manipulation" href="../../model_zoo/embodied/sem.html" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Configuration &amp; Your First Basic Training Run" href="nonb-01_basic_run.html" /><link rel="prev" title="SEM: Enhancing Spatial Understanding for Robust Robot Manipulation" href="../../model_zoo/embodied/sem.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Trainer Tutorials - RoboOrchard Lab</title>
@@ -345,7 +345,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </ul>
 <ul class="current">
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Trainer Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Trainer Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="nonb-01_basic_example.html">Mastering Your Training Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nonb-01_basic_run.html">Configuration &amp; Your First Basic Training Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nonb-02_built_in_hooks.html">Leveraging Built-in Hooks for Common Training Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nonb-03_custom_hook.html">(Advanced) Creating Custom Hooks for Tailored Logic</a></li>
 </ul>
 </li>
 </ul>
@@ -424,9 +426,15 @@ as our foundation. We’ll start with the basics of running the script and gradu
 <li><p>Hugging Face Accelerator Integration: Uses Accelerator for abstracting device management (CPU/GPU/TPU), distributed training (DDP, FSDP, etc.), and mixed precision.</p></li>
 <li><p>Modular Training Pipeline: A clear abstraction for the main training loop, encapsulating the core logic. A hook system allows injecting custom logic at various points in the training loop without modifying the pipeline core.</p></li>
 </ul>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Mastering Your Training Pipeline"><img alt="" src="../../_images/sphx_glr_nonb-01_basic_example_thumb.png" />
-<p><a class="reference internal" href="nonb-01_basic_example.html#sphx-glr-build-trainer-tutorial-nonb-01-basic-example-py"><span class="std std-ref">Mastering Your Training Pipeline</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Mastering Your Training Pipeline</div>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Configuration &amp; Your First Basic Training Run"><img alt="" src="../../_images/sphx_glr_nonb-01_basic_run_thumb.png" />
+<p><a class="reference internal" href="nonb-01_basic_run.html#sphx-glr-build-trainer-tutorial-nonb-01-basic-run-py"><span class="std std-ref">Configuration &amp; Your First Basic Training Run</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Configuration & Your First Basic Training Run</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Hooks are the primary way to add custom behavior to the training or evaluation loop without modifying its source code. They are called at specific points during training or evaluation (e.g., end of epoch, after a step)."><img alt="" src="../../_images/sphx_glr_nonb-02_built_in_hooks_thumb.png" />
+<p><a class="reference internal" href="nonb-02_built_in_hooks.html#sphx-glr-build-trainer-tutorial-nonb-02-built-in-hooks-py"><span class="std std-ref">Leveraging Built-in Hooks for Common Training Tasks</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Leveraging Built-in Hooks for Common Training Tasks</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="This tutorial will guide you through: 1. Understanding the core components: PipelineHooksConfig, PipelineHooks, HookContext, and PipelineHookArgs. 2. Creating a custom hook class that bundles logging logic for different training stages. 3. Configuring and instantiating your custom hook. 4. (Simulated) Seeing how this hook would interact with a training engine."><img alt="" src="../../_images/sphx_glr_nonb-03_custom_hook_thumb.png" />
+<p><a class="reference internal" href="nonb-03_custom_hook.html#sphx-glr-build-trainer-tutorial-nonb-03-custom-hook-py"><span class="std std-ref">(Advanced) Creating Custom Hooks for Tailored Logic</span></a></p>
+  <div class="sphx-glr-thumbnail-title">(Advanced) Creating Custom Hooks for Tailored Logic</div>
 </div></div><div class="toctree-wrapper compound">
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
@@ -437,12 +445,12 @@ as our foundation. We’ll start with the basics of running the script and gradu
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="nonb-01_basic_example.html">
+          <a class="next-page" href="nonb-01_basic_run.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Mastering Your Training Pipeline</div>
+                <div class="title">Configuration &amp; Your First Basic Training Run</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

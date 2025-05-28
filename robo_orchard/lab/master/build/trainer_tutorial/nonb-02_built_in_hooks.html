@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="API Reference" href="../../api/index.html" /><link rel="prev" title="Trainer Tutorials" href="index.html" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="(Advanced) Creating Custom Hooks for Tailored Logic" href="nonb-03_custom_hook.html" /><link rel="prev" title="Configuration &amp; Your First Basic Training Run" href="nonb-01_basic_run.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>Mastering Your Training Pipeline - RoboOrchard Lab</title>
+        <title>Leveraging Built-in Hooks for Common Training Tasks - RoboOrchard Lab</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
@@ -345,7 +345,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </ul>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Trainer Tutorials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Trainer Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Mastering Your Training Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nonb-01_basic_run.html">Configuration &amp; Your First Basic Training Run</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Leveraging Built-in Hooks for Common Training Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nonb-03_custom_hook.html">(Advanced) Creating Custom Hooks for Tailored Logic</a></li>
 </ul>
 </li>
 </ul>
@@ -393,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="../../_sources/build/trainer_tutorial/nonb-01_basic_example.rst.txt" title="View this page">
+  <a class="muted-link" href="../../_sources/build/trainer_tutorial/nonb-02_built_in_hooks.rst.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -415,13 +417,15 @@ document.addEventListener('DOMContentLoaded', function() {
         <article role="main" id="furo-main-content">
           <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p><a class="reference internal" href="#sphx-glr-download-build-trainer-tutorial-nonb-01-basic-example-py"><span class="std std-ref">Go to the end</span></a>
+<p><a class="reference internal" href="#sphx-glr-download-build-trainer-tutorial-nonb-02-built-in-hooks-py"><span class="std std-ref">Go to the end</span></a>
 to download the full example code.</p>
 </div>
-<section class="sphx-glr-example-title" id="mastering-your-training-pipeline">
-<span id="sphx-glr-build-trainer-tutorial-nonb-01-basic-example-py"></span><h1>Mastering Your Training Pipeline<a class="headerlink" href="#mastering-your-training-pipeline" title="Link to this heading">¶</a></h1>
-<section id="prerequest-import-packages-and-configure-logging">
-<h2>Prerequest: Import packages and configure logging<a class="headerlink" href="#prerequest-import-packages-and-configure-logging" title="Link to this heading">¶</a></h2>
+<section class="sphx-glr-example-title" id="leveraging-built-in-hooks-for-common-training-tasks">
+<span id="sphx-glr-build-trainer-tutorial-nonb-02-built-in-hooks-py"></span><h1>Leveraging Built-in Hooks for Common Training Tasks<a class="headerlink" href="#leveraging-built-in-hooks-for-common-training-tasks" title="Link to this heading">¶</a></h1>
+<p>Hooks are the primary way to add custom behavior to the training or evaluation loop without modifying its source code.
+They are called at specific points during training or evaluation (e.g., end of epoch, after a step).</p>
+<section id="reuse-the-code-from-previous-tutorial">
+<h2>Reuse the code from previous tutorial<a class="headerlink" href="#reuse-the-code-from-previous-tutorial" title="Link to this heading">¶</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <a href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="typing.Any" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-data"><span class="n">Any</span></a><span class="p">,</span> <a href="https://docs.python.org/3.10/library/typing.html#typing.Optional" title="typing.Optional" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-data"><span class="n">Optional</span></a><span class="p">,</span> <a href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="typing.Tuple" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-data"><span class="n">Tuple</span></a>
@@ -432,13 +436,8 @@ to download the full example code.</p>
 
 <span class="n">log_basic_config</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span></a><span class="p">)</span>
 <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger" title="logging.Logger" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">logger</span></a> <span class="o">=</span> <a href="https://docs.python.org/3.10/library/logging.html#logging.getLogger" title="logging.getLogger" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-function"><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span></a><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="part1-using-pydantic-for-configuration">
-<h2>Part1: Using pydantic for configuration<a class="headerlink" href="#part1-using-pydantic-for-configuration" title="Link to this heading">¶</a></h2>
-<p>Our framework emphasizes configuration-driven training. Let’s look at DatasetConfig</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <a href="https://docs.pydantic.dev/api/fields/#pydantic.fields.Field" title="pydantic.Field" class="sphx-glr-backref-module-pydantic sphx-glr-backref-type-py-function"><span class="n">Field</span></a>
+
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <a href="https://docs.pydantic.dev/api/fields/#pydantic.fields.Field" title="pydantic.Field" class="sphx-glr-backref-module-pydantic sphx-glr-backref-type-py-function"><span class="n">Field</span></a>
 <span class="kn">from</span> <span class="nn">robo_orchard_core.utils.cli</span> <span class="kn">import</span> <a href="https://docs.pydantic.dev/api/pydantic_settings/#pydantic_settings.BaseSettings" title="pydantic_settings.BaseSettings" class="sphx-glr-backref-module-pydantic_settings sphx-glr-backref-type-py-class"><span class="n">SettingConfig</span></a>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" title="torch.utils.data.DataLoader" class="sphx-glr-backref-module-torch-utils-data sphx-glr-backref-type-py-class"><span class="n">DataLoader</span></a><span class="p">,</span> <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset" title="torch.utils.data.Dataset" class="sphx-glr-backref-module-torch-utils-data sphx-glr-backref-type-py-class"><span class="n">Dataset</span></a>
 <span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">transforms</span>
@@ -518,13 +517,9 @@ to download the full example code.</p>
                 <span class="p">),</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">train_dataset</span><span class="p">,</span> <span class="n">val_dataset</span>
-</pre></div>
-</div>
-<p>DatasetConfig uses Pydantic Field to define parameters like data_root and pipeline_test.
-The pipeline_test flag is crucial. If True, it uses FakeData for a quick test run without needing the actual ImageNet dataset.
-get_dataset() method encapsulates the logic for creating train and validation datasets.</p>
-<p>TrainerConfig, which nests DatasetConfig:</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TrainerConfig</span><span class="p">(</span><a href="https://docs.pydantic.dev/api/pydantic_settings/#pydantic_settings.BaseSettings" title="pydantic_settings.BaseSettings" class="sphx-glr-backref-module-pydantic_settings sphx-glr-backref-type-py-class"><span class="n">SettingConfig</span></a><span class="p">):</span>
+
+
+<span class="k">class</span> <span class="nc">TrainerConfig</span><span class="p">(</span><a href="https://docs.pydantic.dev/api/pydantic_settings/#pydantic_settings.BaseSettings" title="pydantic_settings.BaseSettings" class="sphx-glr-backref-module-pydantic_settings sphx-glr-backref-type-py-class"><span class="n">SettingConfig</span></a><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for the trainer.</span>
 
 <span class="sd">    This is an example configuration for training a ResNet50 model</span>
@@ -558,25 +553,11 @@ get_dataset() method encapsulates the logic for creating train and validation da
 
 
 <span class="n">cfg</span> <span class="o">=</span> <a href="https://docs.pydantic.dev/api/pydantic_settings/#pydantic_settings.BaseSettings" title="pydantic_settings.BaseSettings" class="sphx-glr-backref-module-pydantic_settings sphx-glr-backref-type-py-class"><span class="n">TrainerConfig</span></a><span class="p">(</span>
-    <span class="n">dataset</span><span class="o">=</span><a href="https://docs.pydantic.dev/api/pydantic_settings/#pydantic_settings.BaseSettings" title="pydantic_settings.BaseSettings" class="sphx-glr-backref-module-pydantic_settings sphx-glr-backref-type-py-class"><span class="n">DatasetConfig</span></a><span class="p">(</span><span class="n">pipeline_test</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">max_epoch</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">dataset</span><span class="o">=</span><a href="https://docs.pydantic.dev/api/pydantic_settings/#pydantic_settings.BaseSettings" title="pydantic_settings.BaseSettings" class="sphx-glr-backref-module-pydantic_settings sphx-glr-backref-type-py-class"><span class="n">DatasetConfig</span></a><span class="p">(</span><span class="n">pipeline_test</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">max_epoch</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">workspace_root</span><span class="o">=</span><span class="s2">&quot;./workspace/tutorial2/&quot;</span>
 <span class="p">)</span>
-</pre></div>
-</div>
-<p>These Pydantic models can also parsed from command-line arguments using <code class="docutils literal notranslate"><span class="pre">pydantic_from_argparse(TrainerConfig,</span> <span class="pre">parser)</span></code>. This means you can override any setting from the CLI, e.g., <code class="docutils literal notranslate"><span class="pre">--batch_size</span> <span class="pre">64</span></code> or even nested ones like <code class="docutils literal notranslate"><span class="pre">--dataset.data_root</span> <span class="pre">/path/to/my/data</span></code>.</p>
-</section>
-<section id="part2-understanding-the-core-trainer-components">
-<h2>Part2: Understanding the Core trainer Components<a class="headerlink" href="#part2-understanding-the-core-trainer-components" title="Link to this heading">¶</a></h2>
-<p>Let’s dive into the specific components from robo_orchard_lab that make this work.</p>
-<section id="accelerator-the-engine-for-scale-and-simplicity">
-<h3>Accelerator: The Engine for Scale and Simplicity<a class="headerlink" href="#accelerator-the-engine-for-scale-and-simplicity" title="Link to this heading">¶</a></h3>
-<p>Accelerator from Hugging Face handles:</p>
-<ul class="simple">
-<li><p>Device Agnosticism: Runs your code on CPU, single GPU, multiple GPUs, or TPUs with minimal changes.</p></li>
-<li><p>Distributed Training: Automatically sets up distributed training if multiple GPUs are available.</p></li>
-<li><p>Mixed Precision: Can enable AMP for faster training and reduced memory.</p></li>
-<li><p>Checkpointing: Accelerator manage saving and loading checkpoints in an organized way.</p></li>
-</ul>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">accelerate</span> <span class="kn">import</span> <span class="n">Accelerator</span>
+
+<span class="kn">from</span> <span class="nn">accelerate</span> <span class="kn">import</span> <span class="n">Accelerator</span>
 <span class="kn">from</span> <span class="nn">accelerate.utils</span> <span class="kn">import</span> <span class="n">ProjectConfiguration</span>
 
 <span class="n">accelerator</span> <span class="o">=</span> <span class="n">Accelerator</span><span class="p">(</span>
@@ -587,21 +568,9 @@ get_dataset() method encapsulates the logic for creating train and validation da
         <span class="n">total_limit</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>  <span class="c1"># Max checkpoints to keep</span>
     <span class="p">)</span>
 <span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="batch-processor-defining-per-step-logic">
-<h3>Batch processor: Defining Per-Step Logic<a class="headerlink" href="#batch-processor-defining-per-step-logic" title="Link to this heading">¶</a></h3>
-<p>Instead of hard coding the forward pass and loss calculation within the trainer, we use a BatchProcessor.
-MyBatchProcessor inherits from <a class="reference internal" href="../../api/pipeline/batch_processor.html#robo_orchard_lab.pipeline.batch_processor.simple.SimpleBatchProcessor" title="robo_orchard_lab.pipeline.batch_processor.simple.SimpleBatchProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.batch_processor.simple.SimpleBatchProcessor</span></code></a>.</p>
-<p>You define your loss function (here, CrossEntropyLoss) in <code class="docutils literal notranslate"><span class="pre">__init__</span></code>.
-<code class="docutils literal notranslate"><span class="pre">forward</span></code> contains the logic for a single step: getting model output and calculating loss.
-The need_backward flag allows this processor to be used for evaluation loops where backpropagation isn’t needed.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Accelerator handles moving the model and batch to the correct device before forward is called by the trainer.</p>
-</div>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.batch_processor</span> <span class="kn">import</span> <a href="https://docs.python.org/3.10/library/abc.html#abc.ABC" title="abc.ABC" class="sphx-glr-backref-module-abc sphx-glr-backref-type-py-class"><span class="n">SimpleBatchProcessor</span></a>
+
+
+<span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.batch_processor</span> <span class="kn">import</span> <a href="https://docs.python.org/3.10/library/abc.html#abc.ABC" title="abc.ABC" class="sphx-glr-backref-module-abc sphx-glr-backref-type-py-class"><span class="n">SimpleBatchProcessor</span></a>
 
 
 <span class="k">class</span> <span class="nc">MyBatchProcessor</span><span class="p">(</span><a href="https://docs.python.org/3.10/library/abc.html#abc.ABC" title="abc.ABC" class="sphx-glr-backref-module-abc sphx-glr-backref-type-py-class"><span class="n">SimpleBatchProcessor</span></a><span class="p">):</span>
@@ -622,39 +591,72 @@ The need_backward flag allows this processor to be used for evaluation loops whe
         <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">need_backward</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">loss</span>  <span class="c1"># Returns model output and loss</span>
+
+
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class"><span class="n">SGD</span></a>
+<span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html#torch.optim.lr_scheduler.StepLR" title="torch.optim.lr_scheduler.StepLR" class="sphx-glr-backref-module-torch-optim-lr_scheduler sphx-glr-backref-type-py-class"><span class="n">StepLR</span></a>
+
+<span class="n">train_dataset</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">()</span>
+<a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" title="torch.utils.data.DataLoader" class="sphx-glr-backref-module-torch-utils-data sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">train_dataloader</span></a> <span class="o">=</span> <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" title="torch.utils.data.DataLoader" class="sphx-glr-backref-module-torch-utils-data sphx-glr-backref-type-py-class"><span class="n">DataLoader</span></a><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span></a><span class="p">,</span>
+    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cfg</span><span class="o">.</span><span class="n">num_workers</span></a><span class="p">,</span>
+    <span class="n">pin_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">()</span>
+
+<a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">optimizer</span></a> <span class="o">=</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class"><span class="n">SGD</span></a><span class="p">(</span><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.parameters" title="torch.nn.Module.parameters" class="sphx-glr-backref-module-torch-nn sphx-glr-backref-type-py-method"><span class="n">model</span><span class="o">.</span><span class="n">parameters</span></a><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
+<a href="https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html#torch.optim.lr_scheduler.StepLR" title="torch.optim.lr_scheduler.StepLR" class="sphx-glr-backref-module-torch-optim-lr_scheduler sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lr_scheduler</span></a> <span class="o">=</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html#torch.optim.lr_scheduler.StepLR" title="torch.optim.lr_scheduler.StepLR" class="sphx-glr-backref-module-torch-optim-lr_scheduler sphx-glr-backref-type-py-class"><span class="n">StepLR</span></a><span class="p">(</span><a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">optimizer</span></a><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+
+<a href="https://docs.python.org/3.10/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hooks</span></a> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
 </div>
 </section>
-<section id="hooks-customizing-your-pipeline">
-<h3>Hooks: Customizing your pipeline<a class="headerlink" href="#hooks-customizing-your-pipeline" title="Link to this heading">¶</a></h3>
-<p>Hooks are the primary way to add custom behavior to the training or evaluation loop without modifying its source code.
-They are called at specific points during training or evaluation (e.g., end of epoch, after a step).</p>
-<p>Core Concepts of the <code class="docutils literal notranslate"><span class="pre">PipelineHooks</span></code> System</p>
+<section id="core-concepts-of-the-hook-system">
+<h2>Core concepts of the hook System<a class="headerlink" href="#core-concepts-of-the-hook-system" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHookArgs" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHookArgs"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.mixin.PipelineHookArgs</span></code></a>: A dataclass holding all relevant information (accelerator,
+<li><p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHookArgs" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHookArgs"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineHookArgs</span></code></a>: A dataclass holding all relevant information (accelerator,
 epoch/step IDs, batch data, model outputs, loss, etc.) passed to each hook.
 This ensures hooks have a standardized, type-safe context.</p></li>
-<li><p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig</span></code></a>: The entire <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks</span></code></a> setup,
+<li><p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineHooksConfig</span></code></a>: The entire <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineHooks</span></code></a> setup,
 including which individual hooks are active and their parameters, can often be defined via Pydantic configurations.
 This offers great flexibility and reproducibility. For instance, a main
-experiment config might point to a <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig</span></code></a>,
+experiment config might point to a <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHooksConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineHooksConfig</span></code></a>,
 which in turn might specify a list of individual hook configurations (e.g.,
-<a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTrackerConfig" title="robo_orchard_lab.pipeline.hooks.metric.MetricTrackerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.metric.MetricTrackerConfig</span></code></a>,
-<a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig" title="robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig</span></code></a>).</p></li>
+<a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTrackerConfig" title="robo_orchard_lab.pipeline.hooks.metric.MetricTrackerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricTrackerConfig</span></code></a>,
+<a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig" title="robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">SaveCheckpointConfig</span></code></a>).</p></li>
 </ul>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3.10/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hooks</span></a> <span class="o">=</span> <span class="p">[]</span>
-</pre></div>
-</div>
+</section>
+<section id="some-built-in-hooks">
+<h2>Some built-in hooks<a class="headerlink" href="#some-built-in-hooks" title="Link to this heading">¶</a></h2>
+<p>To streamline common training tasks and reduce boilerplate code, <strong>robo_orchard_lab</strong>
+provides a collection of pre-built hooks. These hooks are implemented using the same
+underlying <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks" title="robo_orchard_lab.pipeline.hooks.mixin.PipelineHooks"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineHooks</span></code></a> and
+<a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.mixin.HookContext" title="robo_orchard_lab.pipeline.hooks.mixin.HookContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">HookContext</span></code></a> mechanisms discussed
+previously.</p>
+<p>Typically, you interact with these built-in hooks by instantiating their
+corresponding Pydantic configuration classes (e.g., <code class="docutils literal notranslate"><span class="pre">MetricTrackerConfig</span></code>,
+<code class="docutils literal notranslate"><span class="pre">StatsMonitorConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">SaveCheckpointConfig</span></code>). These config objects allow you
+to customize the behavior of the hook and are then used to create the actual
+hook instances, which are subsequently added to your main <code class="docutils literal notranslate"><span class="pre">HookBasedTrainer</span></code>’s
+list of active hooks.</p>
+<p>In the following subsections, we will explore how to configure and use some of
+the most common built-in hooks provided by the framework. While these cover
+frequent use cases, remember that you can always create your own custom hooks
+(as shown in the “(Advanced) Creating Your First Custom Hook” section) for more
+specialized requirements.</p>
 <section id="metrictracker-track-on-performance">
-<h4>MetricTracker: Track on performance<a class="headerlink" href="#metrictracker-track-on-performance" title="Link to this heading">¶</a></h4>
-<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTracker" title="robo_orchard_lab.pipeline.hooks.metric.MetricTracker"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.metric.MetricTracker</span></code></a> is a specialized hook for handling metrics.
-It takes a list of <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricEntry" title="robo_orchard_lab.pipeline.hooks.metric.MetricEntry"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.metric.MetricEntry</span></code></a> objects. Each MetricEntry defines:</p>
+<h3>MetricTracker: Track on performance<a class="headerlink" href="#metrictracker-track-on-performance" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTracker" title="robo_orchard_lab.pipeline.hooks.metric.MetricTracker"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricTracker</span></code></a> is a specialized hook for handling metrics.
+It takes a list of <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricEntry" title="robo_orchard_lab.pipeline.hooks.metric.MetricEntry"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricEntry</span></code></a> objects. Each MetricEntry defines:</p>
 <ul class="simple">
 <li><p>names: How the metric will be logged.</p></li>
 <li><p>metric: An instance of a torchmetrics metric (or any compatible metric object).</p></li>
 </ul>
-<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTracker" title="robo_orchard_lab.pipeline.hooks.metric.MetricTracker"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.metric.MetricTracker</span></code></a> is an abstarct class, you should inherit it
-and implement the <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTracker.update_metric" title="robo_orchard_lab.pipeline.hooks.metric.MetricTracker.update_metric"><code class="xref py py-meth docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.metric.MetricTracker.update_metric()</span></code></a> method, which is called by the trainer to update these metrics with batch outputs and targets.</p>
+<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTracker" title="robo_orchard_lab.pipeline.hooks.metric.MetricTracker"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricTracker</span></code></a> is an abstarct class, you should inherit it
+and implement the <a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.metric.MetricTracker.update_metric" title="robo_orchard_lab.pipeline.hooks.metric.MetricTracker.update_metric"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update_metric()</span></code></a> method, which is called by the trainer to update these metrics with batch outputs and targets.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torchmetrics</span> <span class="kn">import</span> <span class="n">Accuracy</span> <span class="k">as</span> <a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="torch.nn.Module" class="sphx-glr-backref-module-torch-nn sphx-glr-backref-type-py-class"><span class="n">AccuracyMetric</span></a>
 
 <span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.hooks</span> <span class="kn">import</span> <span class="p">(</span>
@@ -702,8 +704,8 @@ and implement the <a class="reference internal" href="../../api/pipeline/hooks.h
 </div>
 </section>
 <section id="statsmonitor-logging-training-vitals">
-<h4>StatsMonitor: Logging Training Vitals<a class="headerlink" href="#statsmonitor-logging-training-vitals" title="Link to this heading">¶</a></h4>
-<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.stats.StatsMonitor" title="robo_orchard_lab.pipeline.hooks.stats.StatsMonitor"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.stats.StatsMonitor</span></code></a> monitors and logs statistics like learning rate, training speed (samples/sec), estimated time remaining, etc.
+<h3>StatsMonitor: Logging Training Vitals<a class="headerlink" href="#statsmonitor-logging-training-vitals" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.stats.StatsMonitor" title="robo_orchard_lab.pipeline.hooks.stats.StatsMonitor"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatsMonitor</span></code></a> monitors and logs statistics like learning rate, training speed (samples/sec), estimated time remaining, etc.
 Its <code class="docutils literal notranslate"><span class="pre">step_log_freq</span></code> controls how often this information is printed or logged.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.hooks</span> <span class="kn">import</span> <a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">StatsMonitorConfig</span></a>
 
@@ -714,9 +716,9 @@ Its <code class="docutils literal notranslate"><span class="pre">step_log_freq</
 </div>
 </section>
 <section id="savecheckpoint-saving-your-progress">
-<h4>SaveCheckpoint: Saving Your Progress<a class="headerlink" href="#savecheckpoint-saving-your-progress" title="Link to this heading">¶</a></h4>
-<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig" title="robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig</span></code></a> is responsible for triggering model checkpoint saves.
-It calls <code class="xref py py-class docutils literal notranslate"><span class="pre">acclerator.Accelerator.save_state()`</span></code> internally. <code class="docutils literal notranslate"><span class="pre">save_step_freq</span></code> defines how many training steps between checkpoints.
+<h3>SaveCheckpoint: Saving Your Progress<a class="headerlink" href="#savecheckpoint-saving-your-progress" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="../../api/pipeline/hooks.html#robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig" title="robo_orchard_lab.pipeline.hooks.checkpoint.SaveCheckpointConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">SaveCheckpointConfig</span></code></a> is responsible for triggering model checkpoint saves.
+It calls <code class="xref py py-class docutils literal notranslate"><span class="pre">save_state()`</span></code> internally. <code class="docutils literal notranslate"><span class="pre">save_step_freq</span></code> defines how many training steps between checkpoints.
 Resuming is handled by Accelerator</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.hooks</span> <span class="kn">import</span> <a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">SaveCheckpointConfig</span></a>
 
@@ -726,144 +728,9 @@ Resuming is handled by Accelerator</p>
 </pre></div>
 </div>
 </section>
-<section id="advanced-creating-your-first-custom-hook">
-<h4>(Advanced) Creating Your First Custom Hook<a class="headerlink" href="#advanced-creating-your-first-custom-hook" title="Link to this heading">¶</a></h4>
-<p>In many complex training scenarios, you might need to inject custom logic at various
-points within the training loop (e.g., at the beginning/end of an epoch, or before/after
-a training step). The <code class="docutils literal notranslate"><span class="pre">robo_orchard_lab</span></code> framework provides a powerful and flexible
-Hook system based on <code class="docutils literal notranslate"><span class="pre">PipelineHooks</span></code> to achieve this without modifying the core
-training engine.</p>
-<p>This tutorial will guide you through:
-1. Understanding the core components: <code class="docutils literal notranslate"><span class="pre">PipelineHooksConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">PipelineHooks</span></code>, <code class="docutils literal notranslate"><span class="pre">HookContext</span></code>, and <code class="docutils literal notranslate"><span class="pre">PipelineHookArgs</span></code>.
-2. Creating a custom hook class that bundles logging logic for different training stages.
-3. Configuring and instantiating your custom hook.
-4. (Simulated) Seeing how this hook would interact with a training engine.</p>
-<p>Let’s get started!</p>
-<section id="implementing-the-custom-hook-myhook">
-<h5>Implementing the Custom Hook: <code class="docutils literal notranslate"><span class="pre">MyHook</span></code><a class="headerlink" href="#implementing-the-custom-hook-myhook" title="Link to this heading">¶</a></h5>
-<p>Let’s define <code class="docutils literal notranslate"><span class="pre">MyHook</span></code>. It inherits from <code class="docutils literal notranslate"><span class="pre">PipelineHooks</span></code>.
-In its <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, it takes its configuration (<code class="docutils literal notranslate"><span class="pre">MyHookConfig</span></code>)
-and registers its own internal methods as callbacks to different channels
-using <code class="docutils literal notranslate"><span class="pre">self.register_hook()</span></code> and <code class="docutils literal notranslate"><span class="pre">HookContext.from_callable()</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">HookContext.from_callable(before=...,</span> <span class="pre">after=...)</span></code> is a convenient way to create
-a <code class="docutils literal notranslate"><span class="pre">HookContext</span></code> object where its <code class="docutils literal notranslate"><span class="pre">on_enter</span></code> method will call the <code class="docutils literal notranslate"><span class="pre">before</span></code>
-function, and its <code class="docutils literal notranslate"><span class="pre">on_exit</span></code> method will call the <code class="docutils literal notranslate"><span class="pre">after</span></code> function.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline.hooks.mixin</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">HookContext</span><span class="p">,</span>
-    <span class="n">PipelineHookArgs</span><span class="p">,</span>
-    <span class="n">PipelineHooks</span><span class="p">,</span>
-    <a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">PipelineHooksConfig</span></a><span class="p">,</span>
-<span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">MyHook</span><span class="p">(</span><span class="n">PipelineHooks</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A custom hook that logs messages at the beginning and end of loops, epochs, and steps, based on configured frequencies.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="s2">&quot;MyHookConfig&quot;</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
-
-        <span class="c1"># Register loop-level hooks</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;on_loop&quot;</span><span class="p">,</span>
-            <span class="n">hook</span><span class="o">=</span><span class="n">HookContext</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span>
-                <span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_loop_begin</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_loop_end</span>
-            <span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Register step-level hooks</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;on_step&quot;</span><span class="p">,</span>
-            <span class="n">hook</span><span class="o">=</span><span class="n">HookContext</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span>
-                <span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_step_begin</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_step_end</span>
-            <span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Register epoch-level hooks</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;on_epoch&quot;</span><span class="p">,</span>
-            <span class="n">hook</span><span class="o">=</span><span class="n">HookContext</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span>
-                <span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_epoch_begin</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_epoch_end</span>
-            <span class="p">),</span>
-        <span class="p">)</span>
-
-        <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;MyHook instance created with step_freq=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_step_freq</span><span class="si">}</span><span class="s2">, epoch_freq=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_epoch_freq</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_on_loop_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
-        <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Begining loop&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_on_loop_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
-        <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Ended loop&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_on_step_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
-        <span class="c1"># Note: step_id is 0-indexed. Adding 1 for 1-indexed frequency check.</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_step_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Begining </span><span class="si">{}</span><span class="s2">-th step&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_on_step_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_step_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Ended </span><span class="si">{}</span><span class="s2">-th step&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">step_id</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_on_epoch_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
-        <span class="c1"># Note: epoch_id is 0-indexed. Adding 1 for 1-indexed frequency check.</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_epoch_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Begining </span><span class="si">{}</span><span class="s2">-th epoch&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_on_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">PipelineHookArgs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">log_epoch_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <a href="https://docs.python.org/3.10/library/logging.html#logging.Logger.info" title="logging.Logger.info" class="sphx-glr-backref-module-logging sphx-glr-backref-type-py-method"><span class="n">logger</span><span class="o">.</span><span class="n">info</span></a><span class="p">(</span><span class="s2">&quot;Ended </span><span class="si">{}</span><span class="s2">-th epoch&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epoch_id</span><span class="p">))</span>
-</pre></div>
-</div>
 </section>
-<section id="defining-your-custom-hook-configuration">
-<h5>Defining Your Custom Hook Configuration<a class="headerlink" href="#defining-your-custom-hook-configuration" title="Link to this heading">¶</a></h5>
-<p>Then, we define a Pydantic configuration class for our custom hook.
-This class will inherit from <code class="docutils literal notranslate"><span class="pre">PipelineHooksConfig</span></code> and specify our custom hook
-class as its <code class="docutils literal notranslate"><span class="pre">class_type</span></code>. It will also hold any parameters our hook needs,
-like logging frequencies.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyHookConfig</span><span class="p">(</span><a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">PipelineHooksConfig</span></a><span class="p">[</span><span class="n">MyHook</span><span class="p">]):</span>
-    <span class="n">class_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">MyHook</span><span class="p">]</span> <span class="o">=</span> <span class="n">MyHook</span>
-    <span class="n">log_step_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
-    <span class="n">log_epoch_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-
-
-<span class="n">my_hook</span> <span class="o">=</span> <a href="https://docs.python.org/3.10/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">MyHookConfig</span></a><span class="p">()</span>
-
-<a href="https://docs.python.org/3.10/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hooks</span></a><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">my_hook</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-</section>
-<section id="dataloader-model-optimizer-and-learning-rate-scheduler">
-<h3>DataLoader, model, optimizer and learning rate scheduler<a class="headerlink" href="#dataloader-model-optimizer-and-learning-rate-scheduler" title="Link to this heading">¶</a></h3>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class"><span class="n">SGD</span></a>
-<span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html#torch.optim.lr_scheduler.StepLR" title="torch.optim.lr_scheduler.StepLR" class="sphx-glr-backref-module-torch-optim-lr_scheduler sphx-glr-backref-type-py-class"><span class="n">StepLR</span></a>
-
-<span class="n">train_dataset</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">()</span>
-<a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" title="torch.utils.data.DataLoader" class="sphx-glr-backref-module-torch-utils-data sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">train_dataloader</span></a> <span class="o">=</span> <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" title="torch.utils.data.DataLoader" class="sphx-glr-backref-module-torch-utils-data sphx-glr-backref-type-py-class"><span class="n">DataLoader</span></a><span class="p">(</span>
-    <span class="n">train_dataset</span><span class="p">,</span>
-    <span class="n">batch_size</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span></a><span class="p">,</span>
-    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">num_workers</span><span class="o">=</span><a href="https://docs.python.org/3.10/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cfg</span><span class="o">.</span><span class="n">num_workers</span></a><span class="p">,</span>
-    <span class="n">pin_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">()</span>
-
-<a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">optimizer</span></a> <span class="o">=</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class"><span class="n">SGD</span></a><span class="p">(</span><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.parameters" title="torch.nn.Module.parameters" class="sphx-glr-backref-module-torch-nn sphx-glr-backref-type-py-method"><span class="n">model</span><span class="o">.</span><span class="n">parameters</span></a><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
-<a href="https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html#torch.optim.lr_scheduler.StepLR" title="torch.optim.lr_scheduler.StepLR" class="sphx-glr-backref-module-torch-optim-lr_scheduler sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lr_scheduler</span></a> <span class="o">=</span> <a href="https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html#torch.optim.lr_scheduler.StepLR" title="torch.optim.lr_scheduler.StepLR" class="sphx-glr-backref-module-torch-optim-lr_scheduler sphx-glr-backref-type-py-class"><span class="n">StepLR</span></a><span class="p">(</span><a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD" title="torch.optim.SGD" class="sphx-glr-backref-module-torch-optim sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">optimizer</span></a><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="part3-orchestrating-the-training">
-<h2>Part3: Orchestrating the Training<a class="headerlink" href="#part3-orchestrating-the-training" title="Link to this heading">¶</a></h2>
-<p><a class="reference internal" href="../../api/pipeline/trainer.html#robo_orchard_lab.pipeline.hook_based_trainer.HookBasedTrainer" title="robo_orchard_lab.pipeline.hook_based_trainer.HookBasedTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">robo_orchard_lab.pipeline.hook_based_trainer.HookBasedTrainer</span></code></a> is the heart of your training loop.
-It takes all necessary PyTorch components (model, dataloader, optimizer, scheduler) and crucially,
-the accelerator and a batch_processor. The hooks list allows for powerful customization, which we have explored before.</p>
+<section id="orchestrating-the-training">
+<h2>Orchestrating the Training<a class="headerlink" href="#orchestrating-the-training" title="Link to this heading">¶</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">robo_orchard_lab.pipeline</span> <span class="kn">import</span> <span class="n">HookBasedTrainer</span>
 
 <span class="n">trainer</span> <span class="o">=</span> <span class="n">HookBasedTrainer</span><span class="p">(</span>
@@ -878,9 +745,6 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
 <span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Rank[0/1] 05/28/2025 11:30:37 INFO __main__:430 MyHook instance created with step_freq=5, epoch_freq=1
-</pre></div>
-</div>
 <p>Show hooks</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><a href="https://docs.python.org/3.10/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hooks</span></a><span class="p">)</span>
 </pre></div>
@@ -892,16 +756,12 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
       hooks=[
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method MyMetricTracker(id=140078639269584)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/metric.py:181&gt;,
+          before=&lt;FunctionInfo bound method MyMetricTracker(id=140335706835120)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/metric.py:181&gt;,
           after=None)&gt;,
         1: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method StatsMonitor(id=140078639174352)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:234&gt;,
-          after=None)&gt;,
-        2: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
-          name=None,
-          before=&lt;FunctionInfo bound method MyHook(id=140078639171616)._on_loop_begin from nonb-01_basic_example.py:434&gt;,
-          after=&lt;FunctionInfo bound method MyHook(id=140078639171616)._on_loop_end from nonb-01_basic_example.py:437&gt;)&gt;
+          before=&lt;FunctionInfo bound method StatsMonitor(id=140335706833824)._on_loop_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:234&gt;,
+          after=None)&gt;
       ])&gt;,
     on_epoch: &lt;robo_orchard_core.utils.hook.HookContextChannel(
       name=on_epoch,
@@ -909,19 +769,15 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method MyMetricTracker(id=140078639269584)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:233&gt;)&gt;,
+          after=&lt;FunctionInfo bound method MyMetricTracker(id=140335706835120)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:233&gt;)&gt;,
         1: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method StatsMonitor(id=140078639174352)._on_epoch_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:316&gt;,
-          after=&lt;FunctionInfo bound method StatsMonitor(id=140078639174352)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:321&gt;)&gt;,
+          before=&lt;FunctionInfo bound method StatsMonitor(id=140335706833824)._on_epoch_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:316&gt;,
+          after=&lt;FunctionInfo bound method StatsMonitor(id=140335706833824)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:321&gt;)&gt;,
         2: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method SaveCheckpoint(id=140078639172240)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:116&gt;)&gt;,
-        3: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
-          name=None,
-          before=&lt;FunctionInfo bound method MyHook(id=140078639171616)._on_epoch_begin from nonb-01_basic_example.py:449&gt;,
-          after=&lt;FunctionInfo bound method MyHook(id=140078639171616)._on_epoch_end from nonb-01_basic_example.py:454&gt;)&gt;
+          after=&lt;FunctionInfo bound method SaveCheckpoint(id=140335706841168)._on_epoch_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:116&gt;)&gt;
       ])&gt;,
     on_step: &lt;robo_orchard_core.utils.hook.HookContextChannel(
       name=on_step,
@@ -929,23 +785,19 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method OptimizerHook(id=140078916900448)._optimizer_step from ../../robo_orchard_lab/pipeline/hooks/optimizer.py:45&gt;)&gt;,
+          after=&lt;FunctionInfo bound method OptimizerHook(id=140335706841072)._optimizer_step from ../../robo_orchard_lab/pipeline/hooks/optimizer.py:45&gt;)&gt;,
         1: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method MyMetricTracker(id=140078639269584)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:205&gt;)&gt;,
+          after=&lt;FunctionInfo bound method MyMetricTracker(id=140335706835120)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:205&gt;)&gt;,
         2: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
-          before=&lt;FunctionInfo bound method StatsMonitor(id=140078639174352)._on_step_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:245&gt;,
-          after=&lt;FunctionInfo bound method StatsMonitor(id=140078639174352)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:249&gt;)&gt;,
+          before=&lt;FunctionInfo bound method StatsMonitor(id=140335706833824)._on_step_begin from ../../robo_orchard_lab/pipeline/hooks/stats.py:245&gt;,
+          after=&lt;FunctionInfo bound method StatsMonitor(id=140335706833824)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/stats.py:249&gt;)&gt;,
         3: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method SaveCheckpoint(id=140078639172240)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:88&gt;)&gt;,
-        4: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
-          name=None,
-          before=&lt;FunctionInfo bound method MyHook(id=140078639171616)._on_step_begin from nonb-01_basic_example.py:440&gt;,
-          after=&lt;FunctionInfo bound method MyHook(id=140078639171616)._on_step_end from nonb-01_basic_example.py:445&gt;)&gt;
+          after=&lt;FunctionInfo bound method SaveCheckpoint(id=140335706841168)._on_step_end from ../../robo_orchard_lab/pipeline/hooks/checkpoint.py:88&gt;)&gt;
       ])&gt;,
     on_batch: &lt;robo_orchard_core.utils.hook.HookContextChannel(
       name=on_batch,
@@ -953,7 +805,7 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
         0: &lt;robo_orchard_core.utils.hook.HookContextFromCallable(
           name=None,
           before=None,
-          after=&lt;FunctionInfo bound method MyMetricTracker(id=140078639269584)._on_batch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:194&gt;)&gt;
+          after=&lt;FunctionInfo bound method MyMetricTracker(id=140335706835120)._on_batch_end from ../../robo_orchard_lab/pipeline/hooks/metric.py:194&gt;)&gt;
       ])&gt;,
   })&gt;
 </pre></div>
@@ -962,97 +814,13 @@ the accelerator and a batch_processor. The hooks list allows for powerful custom
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">trainer</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Rank[0/1] 05/28/2025 11:30:37 INFO robo_orchard_lab.pipeline.hook_based_trainer:323
-==================================================BEGIN TRAINING==================================================
-Rank[0/1] 05/28/2025 11:30:37 INFO robo_orchard_lab.pipeline.hook_based_trainer:327 Start training loop from epoch 0 and step 0
-Rank[0/1] 05/28/2025 11:30:37 INFO __main__:435 Begining loop
-Rank[0/1] 05/28/2025 11:30:37 INFO __main__:452 Begining 0-th epoch
-Rank[0/1] 05/28/2025 11:30:41 INFO __main__:443 Begining 4-th step
-Rank[0/1] 05/28/2025 11:30:41 INFO __main__:447 Ended 4-th step
-Rank[0/1] 05/28/2025 11:30:44 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[0]: top1_acc[tensor(0.0020, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0098, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/28/2025 11:30:44 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[0] completed. Training Speed: 151.65 samples/sec across all devices. Epoch Time: 6.75 sec.   Average Epoch Time: 6.75 sec.   Average Step Time: 0.84 sec.    Estimated Remaining Time: 0:00:27.      Learning Rate: 1.00000e-01.
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_0
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_0/model.safetensors
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_0/model_1.safetensors
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_0/optimizer.bin
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_0/scheduler.bin
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_0/sampler.bin
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_0/random_states_0.pkl
-Rank[0/1] 05/28/2025 11:30:44 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_0/custom_checkpoint_0.pkl
-Rank[0/1] 05/28/2025 11:30:44 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 0 to workspace/checkpoints/checkpoint_0
-Rank[0/1] 05/28/2025 11:30:44 INFO __main__:456 Ended 0-th epoch
-Rank[0/1] 05/28/2025 11:30:44 INFO __main__:452 Begining 1-th epoch
-Rank[0/1] 05/28/2025 11:30:48 INFO __main__:443 Begining 4-th step
-Rank[0/1] 05/28/2025 11:30:48 INFO __main__:447 Ended 4-th step
-Rank[0/1] 05/28/2025 11:30:50 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[1]: top1_acc[tensor(0.0010, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0088, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/28/2025 11:30:50 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[1] completed. Training Speed: 167.39 samples/sec across all devices. Epoch Time: 6.12 sec.   Average Epoch Time: 6.12 sec.   Average Step Time: 0.76 sec.    Estimated Remaining Time: 0:00:19.      Learning Rate: 1.00000e-01.
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_1
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_1/model.safetensors
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_1/model_1.safetensors
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_1/optimizer.bin
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_1/scheduler.bin
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_1/sampler.bin
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_1/random_states_0.pkl
-Rank[0/1] 05/28/2025 11:30:50 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_1/custom_checkpoint_0.pkl
-Rank[0/1] 05/28/2025 11:30:50 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 1 to workspace/checkpoints/checkpoint_1
-Rank[0/1] 05/28/2025 11:30:50 INFO __main__:456 Ended 1-th epoch
-Rank[0/1] 05/28/2025 11:30:50 INFO __main__:452 Begining 2-th epoch
-Rank[0/1] 05/28/2025 11:30:54 INFO __main__:443 Begining 4-th step
-Rank[0/1] 05/28/2025 11:30:54 INFO __main__:447 Ended 4-th step
-Rank[0/1] 05/28/2025 11:30:56 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[2]: top1_acc[tensor(0.0049, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0166, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/28/2025 11:30:56 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[2] completed. Training Speed: 168.96 samples/sec across all devices. Epoch Time: 6.06 sec.   Average Epoch Time: 6.06 sec.   Average Step Time: 0.76 sec.    Estimated Remaining Time: 0:00:12.      Learning Rate: 1.00000e-01.
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_2
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_2/model.safetensors
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_2/model_1.safetensors
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_2/optimizer.bin
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_2/scheduler.bin
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_2/sampler.bin
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_2/random_states_0.pkl
-Rank[0/1] 05/28/2025 11:30:56 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_2/custom_checkpoint_0.pkl
-Rank[0/1] 05/28/2025 11:30:56 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 2 to workspace/checkpoints/checkpoint_2
-Rank[0/1] 05/28/2025 11:30:56 INFO __main__:456 Ended 2-th epoch
-Rank[0/1] 05/28/2025 11:30:56 INFO __main__:452 Begining 3-th epoch
-Rank[0/1] 05/28/2025 11:31:00 INFO __main__:443 Begining 4-th step
-Rank[0/1] 05/28/2025 11:31:00 INFO __main__:447 Ended 4-th step
-Rank[0/1] 05/28/2025 11:31:02 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[3]: top1_acc[tensor(0.0039, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0205, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/28/2025 11:31:02 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[3] completed. Training Speed: 188.75 samples/sec across all devices. Epoch Time: 5.43 sec.   Average Epoch Time: 5.43 sec.   Average Step Time: 0.68 sec.    Estimated Remaining Time: 0:00:06.      Learning Rate: 1.00000e-02.
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_3
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_3/model.safetensors
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_3/model_1.safetensors
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_3/optimizer.bin
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_3/scheduler.bin
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_3/sampler.bin
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_3/random_states_0.pkl
-Rank[0/1] 05/28/2025 11:31:02 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_3/custom_checkpoint_0.pkl
-Rank[0/1] 05/28/2025 11:31:02 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 3 to workspace/checkpoints/checkpoint_3
-Rank[0/1] 05/28/2025 11:31:02 INFO __main__:456 Ended 3-th epoch
-Rank[0/1] 05/28/2025 11:31:02 INFO __main__:452 Begining 4-th epoch
-Rank[0/1] 05/28/2025 11:31:05 INFO __main__:443 Begining 4-th step
-Rank[0/1] 05/28/2025 11:31:05 INFO __main__:447 Ended 4-th step
-Rank[0/1] 05/28/2025 11:31:07 INFO robo_orchard_lab.pipeline.hooks.metric:179 Epoch[4]: top1_acc[tensor(0.0029, device=&#39;cuda:0&#39;)] top5_acc[tensor(0.0244, device=&#39;cuda:0&#39;)]
-Rank[0/1] 05/28/2025 11:31:07 INFO robo_orchard_lab.pipeline.hooks.stats:394 Epoch[4] completed. Training Speed: 202.43 samples/sec across all devices. Epoch Time: 5.06 sec.   Average Epoch Time: 5.06 sec.   Average Step Time: 0.63 sec.    Estimated Remaining Time: 0:00:00.      Learning Rate: 1.00000e-02.
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.accelerator:3022 Saving current state to ./workspace/checkpoints/checkpoint_4
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_4/model.safetensors
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.checkpointing:105 Model weights saved in workspace/checkpoints/checkpoint_4/model_1.safetensors
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.checkpointing:112 Optimizer state saved in workspace/checkpoints/checkpoint_4/optimizer.bin
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.checkpointing:119 Scheduler state saved in workspace/checkpoints/checkpoint_4/scheduler.bin
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.checkpointing:136 Sampler state for dataloader 0 saved in workspace/checkpoints/checkpoint_4/sampler.bin
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.checkpointing:161 Random states saved in workspace/checkpoints/checkpoint_4/random_states_0.pkl
-Rank[0/1] 05/28/2025 11:31:07 INFO accelerate.checkpointing:295 Saving the state of TrainerProgressState to workspace/checkpoints/checkpoint_4/custom_checkpoint_0.pkl
-Rank[0/1] 05/28/2025 11:31:07 INFO robo_orchard_lab.pipeline.hooks.checkpoint:137 Save checkpoint at the end of epoch 4 to workspace/checkpoints/checkpoint_4
-Rank[0/1] 05/28/2025 11:31:07 INFO __main__:456 Ended 4-th epoch
-Rank[0/1] 05/28/2025 11:31:07 INFO __main__:438 Ended loop
-Rank[0/1] 05/28/2025 11:31:07 INFO robo_orchard_lab.pipeline.hook_based_trainer:396
-==================================================FINISH TRAINING==================================================
-</pre></div>
-</div>
 <p>All the checkpoints is saved to <code class="docutils literal notranslate"><span class="pre">cfg.workspace</span></code></p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
 
 <span class="nb">print</span><span class="p">(</span><a href="https://docs.python.org/3.10/library/subprocess.html#subprocess.check_output" title="subprocess.check_output" class="sphx-glr-backref-module-subprocess sphx-glr-backref-type-py-function"><span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span></a><span class="p">([</span><span class="s2">&quot;tree&quot;</span><span class="p">,</span> <a href="https://docs.python.org/3.10/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cfg</span><span class="o">.</span><span class="n">workspace_root</span></a><span class="p">])</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>./workspace/
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>./workspace/tutorial2/
 └── checkpoints
     ├── checkpoint_0
     │   ├── custom_checkpoint_0.pkl
@@ -1093,16 +861,16 @@ Rank[0/1] 05/28/2025 11:31:07 INFO robo_orchard_lab.pipeline.hook_based_trainer:
 6 directories, 30 files
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 31.349 seconds)</p>
-<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-build-trainer-tutorial-nonb-01-basic-example-py">
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 21.664 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-build-trainer-tutorial-nonb-02-built-in-hooks-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
-<p><a class="reference download internal" download="" href="../../_downloads/4280948d0913a2e42933717b500f6b46/nonb-01_basic_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">nonb-01_basic_example.ipynb</span></code></a></p>
+<p><a class="reference download internal" download="" href="../../_downloads/ede1f559f178b9dd168990af651f72eb/nonb-02_built_in_hooks.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">nonb-02_built_in_hooks.ipynb</span></code></a></p>
 </div>
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
-<p><a class="reference download internal" download="" href="../../_downloads/253b608fd6a744a8b8eb744efeef09e3/nonb-01_basic_example.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">nonb-01_basic_example.py</span></code></a></p>
+<p><a class="reference download internal" download="" href="../../_downloads/b08cf76e2b899002107401ab9af11a87/nonb-02_built_in_hooks.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">nonb-02_built_in_hooks.py</span></code></a></p>
 </div>
 <div class="sphx-glr-download sphx-glr-download-zip docutils container">
-<p><a class="reference download internal" download="" href="../../_downloads/1ab334e490c6a025cecd614809b11617/nonb-01_basic_example.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">nonb-01_basic_example.zip</span></code></a></p>
+<p><a class="reference download internal" download="" href="../../_downloads/9469d39f2d62bdc50beebb1ac7fd6b9b/nonb-02_built_in_hooks.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">nonb-02_built_in_hooks.zip</span></code></a></p>
 </div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
@@ -1114,23 +882,23 @@ Rank[0/1] 05/28/2025 11:31:07 INFO robo_orchard_lab.pipeline.hook_based_trainer:
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../../api/index.html">
+          <a class="next-page" href="nonb-03_custom_hook.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">API Reference</div>
+                <div class="title">(Advanced) Creating Custom Hooks for Tailored Logic</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="index.html">
+          <a class="prev-page" href="nonb-01_basic_run.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Trainer Tutorials</div>
+                <div class="title">Configuration &amp; Your First Basic Training Run</div>
                 
               </div>
             </a>
@@ -1171,27 +939,16 @@ Rank[0/1] 05/28/2025 11:31:07 INFO robo_orchard_lab.pipeline.hook_based_trainer:
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Mastering Your Training Pipeline</a><ul>
-<li><a class="reference internal" href="#prerequest-import-packages-and-configure-logging">Prerequest: Import packages and configure logging</a></li>
-<li><a class="reference internal" href="#part1-using-pydantic-for-configuration">Part1: Using pydantic for configuration</a></li>
-<li><a class="reference internal" href="#part2-understanding-the-core-trainer-components">Part2: Understanding the Core trainer Components</a><ul>
-<li><a class="reference internal" href="#accelerator-the-engine-for-scale-and-simplicity">Accelerator: The Engine for Scale and Simplicity</a></li>
-<li><a class="reference internal" href="#batch-processor-defining-per-step-logic">Batch processor: Defining Per-Step Logic</a></li>
-<li><a class="reference internal" href="#hooks-customizing-your-pipeline">Hooks: Customizing your pipeline</a><ul>
+<li><a class="reference internal" href="#">Leveraging Built-in Hooks for Common Training Tasks</a><ul>
+<li><a class="reference internal" href="#reuse-the-code-from-previous-tutorial">Reuse the code from previous tutorial</a></li>
+<li><a class="reference internal" href="#core-concepts-of-the-hook-system">Core concepts of the hook System</a></li>
+<li><a class="reference internal" href="#some-built-in-hooks">Some built-in hooks</a><ul>
 <li><a class="reference internal" href="#metrictracker-track-on-performance">MetricTracker: Track on performance</a></li>
 <li><a class="reference internal" href="#statsmonitor-logging-training-vitals">StatsMonitor: Logging Training Vitals</a></li>
 <li><a class="reference internal" href="#savecheckpoint-saving-your-progress">SaveCheckpoint: Saving Your Progress</a></li>
-<li><a class="reference internal" href="#advanced-creating-your-first-custom-hook">(Advanced) Creating Your First Custom Hook</a><ul>
-<li><a class="reference internal" href="#implementing-the-custom-hook-myhook">Implementing the Custom Hook: <code class="docutils literal notranslate"><span class="pre">MyHook</span></code></a></li>
-<li><a class="reference internal" href="#defining-your-custom-hook-configuration">Defining Your Custom Hook Configuration</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#dataloader-model-optimizer-and-learning-rate-scheduler">DataLoader, model, optimizer and learning rate scheduler</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#part3-orchestrating-the-training">Part3: Orchestrating the Training</a></li>
+<li><a class="reference internal" href="#orchestrating-the-training">Orchestrating the Training</a></li>
 </ul>
 </li>
 </ul>
