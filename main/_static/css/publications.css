@@ -1,0 +1,40 @@
+/*
+ * 优化的 Publication-Table 样式 (V4 - 强制移除所有边框)
+ */
+
+/* 1. 表格基础设置 */
+.publication-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-style: none;
+}
+
+/* 2. 统一背景色 */
+.publication-table tr,
+.publication-table tr:nth-child(odd),
+.publication-table tr:nth-child(even) {
+    background: transparent !important;
+}
+
+/* 3. 单元格 (td) 样式 */
+.publication-table td {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    vertical-align: middle;
+
+    /* 【最终变更】使用 !important 强制覆盖主题的默认单元格边框（包括竖线）*/
+    border: none !important;
+}
+
+/* 4. 内容列间距 */
+.publication-table td:first-child {
+    padding-right: 2rem;
+}
+
+/* 5. 图片缩略图样式 */
+.publication-thumbnail {
+    width: 160px;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+}
